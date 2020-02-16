@@ -1,0 +1,41 @@
+{
+  "author": {
+    "name": "Maxim Voronov"
+  },
+  "description": "TsToOdata",
+  "homepage": "https://github.com/voronov-maxim/OdataToEntity#readme",
+  "name": "ts2odata",
+  "version": "0.0.15",
+  "main": "source/index.js",
+  "types": "source/index.d.ts",
+  "license": "MIT",
+  "keywords": [
+    "typescript",
+    "odata",
+    "fluent",
+    "linq"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/voronov-maxim/OdataToEntity"
+  },
+  "files": [
+    "source/*.js",
+    "source/*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "prepublishOnly": "tsc --build"
+  },
+  "devDependencies": {
+    "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.8.4",
+    "@babel/traverse": "^7.8.4",
+    "@babel/types": "^7.8.3",
+    "@types/node": "^13.7.1",
+    "cross-fetch": "^3.0.4"
+  }
+}

@@ -1,0 +1,577 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"Sex": {
+			"type": "string",
+			"enum": ["Male", "Female"]
+		},
+		"OrderStatus": {
+			"type": "string",
+			"enum": ["Unknown", "Processing", "Shipped", "Delivering", "Cancelled"]
+		},
+		"Category": {
+			"type": "object",
+			"properties": {
+				"Id": {
+					"type": "integer"
+				},
+				"Name": {
+					"type": "string"
+				},
+				"ParentId": {
+					"type": "integer"
+				},
+				"DateTime": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"Parent": {
+					"$ref": "#/definitions/Category"
+				},
+				"Children": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Category"
+					}
+				}
+			},
+			"required": ["Id", "Name"],
+			"additionalProperties": false
+		},
+		"Customer": {
+			"type": "object",
+			"properties": {
+				"Address": {
+					"type": "string"
+				},
+				"Country": {
+					"type": "string"
+				},
+				"Id": {
+					"type": "integer"
+				},
+				"Name": {
+					"type": "string"
+				},
+				"Sex": {
+					"$ref": "#/definitions/Sex"
+				},
+				"CustomerShippingAddresses": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/CustomerShippingAddress"
+					}
+				},
+				"AltOrders": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Order"
+					}
+				},
+				"Orders": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Order"
+					}
+				},
+				"ShippingAddresses": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/ShippingAddress"
+					}
+				}
+			},
+			"required": ["Country", "Id", "Name"],
+			"additionalProperties": false
+		},
+		"CustomerShippingAddress": {
+			"type": "object",
+			"properties": {
+				"CustomerCountry": {
+					"type": "string"
+				},
+				"CustomerId": {
+					"type": "integer"
+				},
+				"ShippingAddressOrderId": {
+					"type": "integer"
+				},
+				"ShippingAddressId": {
+					"type": "integer"
+				},
+				"Customer": {
+					"$ref": "#/definitions/Customer"
+				},
+				"ShippingAddress": {
+					"$ref": "#/definitions/ShippingAddress"
+				}
+			},
+			"required": ["CustomerCountry", "CustomerId", "ShippingAddressOrderId", "ShippingAddressId"],
+			"additionalProperties": false
+		},
+		"ManyColumnsBase": {
+			"type": "object",
+			"properties": {
+				"Column01": {
+					"type": "integer"
+				},
+				"Column02": {
+					"type": "integer"
+				},
+				"Column03": {
+					"type": "integer"
+				},
+				"Column04": {
+					"type": "integer"
+				},
+				"Column05": {
+					"type": "integer"
+				},
+				"Column06": {
+					"type": "integer"
+				},
+				"Column07": {
+					"type": "integer"
+				},
+				"Column08": {
+					"type": "integer"
+				},
+				"Column09": {
+					"type": "integer"
+				},
+				"Column10": {
+					"type": "integer"
+				},
+				"Column11": {
+					"type": "integer"
+				},
+				"Column12": {
+					"type": "integer"
+				},
+				"Column13": {
+					"type": "integer"
+				},
+				"Column14": {
+					"type": "integer"
+				},
+				"Column15": {
+					"type": "integer"
+				},
+				"Column16": {
+					"type": "integer"
+				},
+				"Column17": {
+					"type": "integer"
+				},
+				"Column18": {
+					"type": "integer"
+				},
+				"Column19": {
+					"type": "integer"
+				},
+				"Column20": {
+					"type": "integer"
+				},
+				"Column21": {
+					"type": "integer"
+				},
+				"Column22": {
+					"type": "integer"
+				},
+				"Column23": {
+					"type": "integer"
+				},
+				"Column24": {
+					"type": "integer"
+				},
+				"Column25": {
+					"type": "integer"
+				},
+				"Column26": {
+					"type": "integer"
+				},
+				"Column27": {
+					"type": "integer"
+				},
+				"Column28": {
+					"type": "integer"
+				},
+				"Column29": {
+					"type": "integer"
+				},
+				"Column30": {
+					"type": "integer"
+				}
+			},
+			"required": ["Column01", "Column02", "Column03", "Column04", "Column05", "Column06", "Column07", "Column08", "Column09", "Column10", "Column11", "Column12", "Column13", "Column14", "Column15", "Column16", "Column17", "Column18", "Column19", "Column20", "Column21", "Column22", "Column23", "Column24", "Column25", "Column26", "Column27", "Column28", "Column29", "Column30"],
+			"additionalProperties": false
+		},
+		"ManyColumns": {
+			"type": "object",
+			"properties": {
+				"Column01": {
+					"type": "integer"
+				},
+				"Column02": {
+					"type": "integer"
+				},
+				"Column03": {
+					"type": "integer"
+				},
+				"Column04": {
+					"type": "integer"
+				},
+				"Column05": {
+					"type": "integer"
+				},
+				"Column06": {
+					"type": "integer"
+				},
+				"Column07": {
+					"type": "integer"
+				},
+				"Column08": {
+					"type": "integer"
+				},
+				"Column09": {
+					"type": "integer"
+				},
+				"Column10": {
+					"type": "integer"
+				},
+				"Column11": {
+					"type": "integer"
+				},
+				"Column12": {
+					"type": "integer"
+				},
+				"Column13": {
+					"type": "integer"
+				},
+				"Column14": {
+					"type": "integer"
+				},
+				"Column15": {
+					"type": "integer"
+				},
+				"Column16": {
+					"type": "integer"
+				},
+				"Column17": {
+					"type": "integer"
+				},
+				"Column18": {
+					"type": "integer"
+				},
+				"Column19": {
+					"type": "integer"
+				},
+				"Column20": {
+					"type": "integer"
+				},
+				"Column21": {
+					"type": "integer"
+				},
+				"Column22": {
+					"type": "integer"
+				},
+				"Column23": {
+					"type": "integer"
+				},
+				"Column24": {
+					"type": "integer"
+				},
+				"Column25": {
+					"type": "integer"
+				},
+				"Column26": {
+					"type": "integer"
+				},
+				"Column27": {
+					"type": "integer"
+				},
+				"Column28": {
+					"type": "integer"
+				},
+				"Column29": {
+					"type": "integer"
+				},
+				"Column30": {
+					"type": "integer"
+				}
+			},
+			"required": ["Column01", "Column02", "Column03", "Column04", "Column05", "Column06", "Column07", "Column08", "Column09", "Column10", "Column11", "Column12", "Column13", "Column14", "Column15", "Column16", "Column17", "Column18", "Column19", "Column20", "Column21", "Column22", "Column23", "Column24", "Column25", "Column26", "Column27", "Column28", "Column29", "Column30"],
+			"additionalProperties": false
+		},
+		"ManyColumnsView": {
+			"type": "object",
+			"properties": {
+				"Column01": {
+					"type": "integer"
+				},
+				"Column02": {
+					"type": "integer"
+				},
+				"Column03": {
+					"type": "integer"
+				},
+				"Column04": {
+					"type": "integer"
+				},
+				"Column05": {
+					"type": "integer"
+				},
+				"Column06": {
+					"type": "integer"
+				},
+				"Column07": {
+					"type": "integer"
+				},
+				"Column08": {
+					"type": "integer"
+				},
+				"Column09": {
+					"type": "integer"
+				},
+				"Column10": {
+					"type": "integer"
+				},
+				"Column11": {
+					"type": "integer"
+				},
+				"Column12": {
+					"type": "integer"
+				},
+				"Column13": {
+					"type": "integer"
+				},
+				"Column14": {
+					"type": "integer"
+				},
+				"Column15": {
+					"type": "integer"
+				},
+				"Column16": {
+					"type": "integer"
+				},
+				"Column17": {
+					"type": "integer"
+				},
+				"Column18": {
+					"type": "integer"
+				},
+				"Column19": {
+					"type": "integer"
+				},
+				"Column20": {
+					"type": "integer"
+				},
+				"Column21": {
+					"type": "integer"
+				},
+				"Column22": {
+					"type": "integer"
+				},
+				"Column23": {
+					"type": "integer"
+				},
+				"Column24": {
+					"type": "integer"
+				},
+				"Column25": {
+					"type": "integer"
+				},
+				"Column26": {
+					"type": "integer"
+				},
+				"Column27": {
+					"type": "integer"
+				},
+				"Column28": {
+					"type": "integer"
+				},
+				"Column29": {
+					"type": "integer"
+				},
+				"Column30": {
+					"type": "integer"
+				}
+			},
+			"required": ["Column01", "Column02", "Column03", "Column04", "Column05", "Column06", "Column07", "Column08", "Column09", "Column10", "Column11", "Column12", "Column13", "Column14", "Column15", "Column16", "Column17", "Column18", "Column19", "Column20", "Column21", "Column22", "Column23", "Column24", "Column25", "Column26", "Column27", "Column28", "Column29", "Column30"],
+			"additionalProperties": false
+		},
+		"Order": {
+			"type": "object",
+			"properties": {
+				"AltCustomerCountry": {
+					"type": "string"
+				},
+				"AltCustomerId": {
+					"type": "integer"
+				},
+				"Name": {
+					"type": "string"
+				},
+				"CustomerCountry": {
+					"type": "string"
+				},
+				"CustomerId": {
+					"type": "integer"
+				},
+				"Date": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"Id": {
+					"type": "integer"
+				},
+				"Status": {
+					"$ref": "#/definitions/OrderStatus"
+				},
+				"AltCustomer": {
+					"$ref": "#/definitions/Customer"
+				},
+				"Customer": {
+					"$ref": "#/definitions/Customer"
+				},
+				"ShippingAddresses": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/ShippingAddress"
+					}
+				},
+				"Items": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/OrderItem"
+					}
+				}
+			},
+			"required": ["Name", "CustomerCountry", "CustomerId", "Id", "Status"],
+			"additionalProperties": false
+		},
+		"OrderItem": {
+			"type": "object",
+			"properties": {
+				"Count": {
+					"type": "integer"
+				},
+				"Id": {
+					"type": "integer"
+				},
+				"OrderId": {
+					"type": "integer"
+				},
+				"Price": {
+					"type": "number"
+				},
+				"Product": {
+					"type": "string"
+				},
+				"Order": {
+					"$ref": "#/definitions/Order"
+				}
+			},
+			"required": ["Id", "OrderId", "Product"],
+			"additionalProperties": false
+		},
+		"OrderItemsView": {
+			"type": "object",
+			"properties": {
+				"Name": {
+					"type": "string"
+				},
+				"Product": {
+					"type": "string"
+				}
+			},
+			"required": ["Name", "Product"],
+			"additionalProperties": false
+		},
+		"ShippingAddress": {
+			"type": "object",
+			"properties": {
+				"Address": {
+					"type": "string"
+				},
+				"Id": {
+					"type": "integer"
+				},
+				"OrderId": {
+					"type": "integer"
+				},
+				"CustomerShippingAddresses": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/CustomerShippingAddress"
+					}
+				},
+				"Customers": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Customer"
+					}
+				}
+			},
+			"required": ["Address", "Id", "OrderId"],
+			"additionalProperties": false
+		}
+	},
+	"type": "object",
+	"properties": {
+		"Categories": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Category"
+			}
+		},
+		"Customers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Customer"
+			}
+		},
+		"CustomerShippingAddress": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/CustomerShippingAddress"
+			}
+		},
+		"ManyColumns": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/ManyColumns"
+			}
+		},
+		"ManyColumnsView": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/ManyColumnsView"
+			}
+		},
+		"Orders": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Order"
+			}
+		},
+		"OrderItems": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/OrderItem"
+			}
+		},
+		"OrderItemsView": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/OrderItemsView"
+			}
+		},
+		"ShippingAddresses": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/ShippingAddress"
+			}
+		}
+	}
+}
