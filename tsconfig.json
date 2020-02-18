@@ -9,7 +9,8 @@
     "target": "es5",
     "lib": [ "es2017", "dom" ],
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "esModuleInterop": true
   },
   "include": [
     "source",

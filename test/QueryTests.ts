@@ -1,6 +1,7 @@
 import { Request, Headers, fetch } from 'cross-fetch';
 import { OdataContext } from '../source/OdataContext';
 import { OdataFunctions } from '../source/OdataFunctions';
+import { OdataParser } from '../source/OdataParser';
 
 import { OrderContext } from './OrderContext';
 import * as oe from './order';
@@ -10,9 +11,9 @@ export class QueryTests {
     private readonly context: OrderContext;
     private readonly odataNamespace = 'OdataToEntity.Test.Model';
 
-    constructor(baseUri: string) {
+    constructor(baseUri: string, odataParser?: OdataParser) {
         this.baseUri = baseUri;
-        this.context = OdataContext.create(OrderContext, baseUri, this.odataNamespace);
+        this.context = OdataContext.create(OrderContext, baseUri, this.odataNamespace, odataParser);
     }
 
     applyFilter(): void {
@@ -337,7 +338,7 @@ export class QueryTests {
         let url: URL = this.context.Orders
             .expand(o => o.AltCustomer).thenFilter(c => c.Sex === oe.Sex.Male)
             .getQueryUrl();
-        this.equal('Orders?$expand=AltCustomer($filter=Sex eq OdataToEntity.Test.Model.Sex\'Male\')', url);
+        this.equal("Orders?$expand=AltCustomer($filter=Sex eq OdataToEntity.Test.Model.Sex'Male')", url);
 
         let sex: oe.Sex.Male = oe.Sex.Male;
         let url2: URL = this.context.Orders
@@ -905,7 +906,7 @@ export class QueryTests {
             throw 'expected: ' + expectedQuery + '\r\n' + 'actual: ' + actualQuery;
 
         console.log(expected);
-        this.execute(actual);
+        //this.execute(actual);
     }
     equalUrl(expected: URL, actual: URL): void {
         if (expected.href !== actual.href)

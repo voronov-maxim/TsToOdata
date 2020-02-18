@@ -5,7 +5,7 @@
   "description": "TsToOdata",
   "homepage": "https://github.com/voronov-maxim/TsToOdata#readme",
   "name": "ts2odata",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "main": "source/index.js",
   "types": "source/index.d.ts",
   "license": "MIT",
@@ -29,13 +29,13 @@
     "prepublishOnly": "tsc --build"
   },
   "devDependencies": {
+    "@types/node": "^13.7.1",
     "typescript": "^3.7.5"
   },
   "dependencies": {
     "@babel/parser": "^7.8.4",
     "@babel/traverse": "^7.8.4",
     "@babel/types": "^7.8.3",
-    "@types/node": "^13.7.1",
     "cross-fetch": "^3.0.4"
   }
 }

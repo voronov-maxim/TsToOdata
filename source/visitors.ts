@@ -1,37 +1,56 @@
-import traverse from '@babel/traverse';
-import visitors from '@babel/traverse';
-import { NodePath } from '@babel/traverse';
-import * as btypes from '@babel/types';
+import { default as traverse, default as visitors, NodePath } from '@babel/traverse';
+import * as bt from '@babel/types';
+import { EntitySetContext } from './EntitySetContext';
 import * as helpers from './helpers';
+import { EntityDefinition, PropertyDefinition } from './OdataParser';
 import { SelectExpression, SelectKind } from './types';
-import { EntitySetContext } from './EntitySetContext'
+
 
 export class FilterVisitor {
 	BinaryExpression = function (path: NodePath) {
-		let node = path.node as btypes.BinaryExpression;
+		let node = path.node as bt.BinaryExpression;
 
-		let leftExpression: string = traverseNode(path, path.node, 'right');
-		if (isParenthesized(node.left))
-			leftExpression = '(' + leftExpression + ')';
+		let leftExpression: string;
+		let rightExpression: string;
+		let result: [bt.Node, string] | undefined = fixEnum(path);
+		if (result) {
+			if (node.left === result[0]) {
+				leftExpression = traverseNode(path, path.node, 'right');
+				rightExpression = result[1];
+				if (isParenthesized(node.left))
+					leftExpression = '(' + leftExpression + ')';
+			}
+			else {
+				leftExpression = result[1];
+				rightExpression = traverseNode(path, path.node, 'left');
+				if (isParenthesized(node.right))
+					rightExpression = '(' + rightExpression + ')';
+			}
+		}
+		else {
+			leftExpression = traverseNode(path, path.node, 'right');
+			if (isParenthesized(node.left))
+				leftExpression = '(' + leftExpression + ')';
 
-		let rightExpression: string = traverseNode(path, path.node, 'left');
-		if (isParenthesized(node.right))
-			rightExpression = '(' + rightExpression + ')';
+			rightExpression = traverseNode(path, path.node, 'left');
+			if (isParenthesized(node.right))
+				rightExpression = '(' + rightExpression + ')';
+		}
 
 		path.state.expression += leftExpression + ' ' + binaryOperatorToOdata(node.operator) + ' ' + rightExpression;
 		path.skip();
 	}
 	BooleanLiteral = function (path: NodePath) {
-		let node = path.node as btypes.BooleanLiteral;
+		let node = path.node as bt.BooleanLiteral;
 
 		if (path.state.expression !== '')
 			path.state.expression += ',';
 		path.state.expression += node.value.toString();
 	}
 	CallExpression = function (path: NodePath) {
-		let node = path.node as btypes.CallExpression;
+		let node = path.node as bt.CallExpression;
 
-		if (btypes.isMemberExpression(node.callee)) {
+		if (bt.isMemberExpression(node.callee)) {
 			let propertyName: string = node.callee.property.name;
 			let funcName: string = '';
 
@@ -53,7 +72,7 @@ export class FilterVisitor {
 				funcName = 'contains';
 				if (isEntityProperty(node.arguments[0], path.state.paramName)) {
 					let items: string;
-					if (btypes.isIdentifier(node.callee.object))
+					if (bt.isIdentifier(node.callee.object))
 						items = getVariableTextNode(node.callee.object, path.state.entitySetContext.odataNamespace, path.state.scope);
 					else
 						items = traverseNode(path, node.callee.object, 'object');
@@ -61,7 +80,7 @@ export class FilterVisitor {
 					if (items === '')
 						throw new Error("Unsupported includes function");
 
-					path.state.expression = getPropertyPath(node.arguments[0] as btypes.MemberExpression, path.state) + ' in (' + items + ')';
+					path.state.expression = getPropertyPath(node.arguments[0], path.state) + ' in (' + items + ')';
 					path.skip();
 					return;
 				}
@@ -80,7 +99,7 @@ export class FilterVisitor {
 				funcName = 'trim';
 
 			if (funcName !== '') {
-				if (btypes.isMemberExpression(node.callee.object))
+				if (bt.isMemberExpression(node.callee.object))
 					funcName += '(' + getPropertyPath(node.callee.object, path.state);
 				else
 					funcName += '(' + traverseNode(path, node.callee, 'property');
@@ -93,20 +112,20 @@ export class FilterVisitor {
 			}
 
 			if (propertyName == 'arrayLength') {
-				path.state.expression = getPropertyPath(node.arguments[0] as btypes.MemberExpression, path.state) + '/$count';
+				path.state.expression = getPropertyPath(node.arguments[0] as bt.MemberExpression, path.state) + '/$count';
 				path.skip();
 				return;
 			}
 
 			if (propertyName === 'stringLength') {
-				path.state.expression = 'length(' + getPropertyPath(node.arguments[0] as btypes.MemberExpression, path.state) + ')';
+				path.state.expression = 'length(' + getPropertyPath(node.arguments[0] as bt.MemberExpression, path.state) + ')';
 				path.state.kind = SelectKind.Compute;
 				path.skip();
 				return;
 			}
 
 			if (propertyName === 'concat') {
-				funcName = getPropertyPath(node.callee.object as btypes.MemberExpression, path.state);
+				funcName = getPropertyPath(node.callee.object as bt.MemberExpression, path.state);
 				for (let i = 0; i < node.arguments.length; i++) {
 					let argument: string = getVariableTextNode(node.arguments[i], path.state.entitySetContext.odataNamespace, path.state.scope);
 					funcName = 'concat(' + funcName + ',' + argument + ')';
@@ -119,7 +138,7 @@ export class FilterVisitor {
 			if (propertyName === 'every' || propertyName === 'some') {
 				funcName = propertyName === 'every' ? 'all' : 'any';
 				let expression: string = parseNestedFunction(path);
-				if (btypes.isMemberExpression(node.callee.object))
+				if (bt.isMemberExpression(node.callee.object))
 					path.state.expression = node.callee.object.property.name + '/' + funcName + '(d:d/' + expression + ')';
 				else
 					throw Error('Call ' + propertyName + ' invalid object type ' + node.callee.object.type);
@@ -130,8 +149,8 @@ export class FilterVisitor {
 			if (path.state.entitySetContext.isGroupby()) {
 				if (isFunctionExpression(node.arguments[0])) {
 					let expression: string;
-					let body: btypes.Node = helpers.getFunctionBody(node.arguments[0]);
-					if (btypes.isMemberExpression(body))
+					let body: bt.Node = helpers.getFunctionBody(node.arguments[0]);
+					if (bt.isMemberExpression(body))
 						expression = getPropertyPath(body, path.state);
 					else
 						expression = parseNestedFunction(path);
@@ -146,7 +165,7 @@ export class FilterVisitor {
 		}
 	}
 	Identifier = function (path: NodePath) {
-		let node = path.node as btypes.Identifier;
+		let node = path.node as bt.Identifier;
 
 		if (path.listKey === 'params' && isFunctionExpression(path.parent))
 			path.state.paramName = node.name;
@@ -157,7 +176,7 @@ export class FilterVisitor {
 		path.state.visitor.BinaryExpression.enter[0](path);
 	}
 	MemberExpression = function (path: NodePath) {
-		let node = path.node as btypes.MemberExpression;
+		let node = path.node as bt.MemberExpression;
 
 		let expression: string;
 		if (isEntityProperty(path.node, path.state.paramName))
@@ -172,10 +191,10 @@ export class FilterVisitor {
 		path.skip();
 	}
 	NewExpression = function (path: NodePath) {
-		let node = path.node as btypes.NewExpression;
+		let node = path.node as bt.NewExpression;
 
-		if (btypes.isIdentifier(node.callee) && node.callee.name == 'Date')
-			if (btypes.isStringLiteral(node.arguments[0])) {
+		if (bt.isIdentifier(node.callee) && node.callee.name == 'Date')
+			if (bt.isStringLiteral(node.arguments[0])) {
 				path.state.expression = new Date(node.arguments[0].value).toISOString();
 				path.skip();
 				return;
@@ -189,22 +208,22 @@ export class FilterVisitor {
 		path.state.expression += 'null';
 	}
 	NumericLiteral = function (path: NodePath) {
-		let node = path.node as btypes.NumberLiteral;
+		let node = path.node as bt.NumberLiteral;
 
 		if (path.state.expression !== '')
-			if (!btypes.isUnaryExpression(path.parent))
+			if (!bt.isUnaryExpression(path.parent))
 				path.state.expression += ',';
 		path.state.expression += node.value.toString();
 	}
 	StringLiteral = function (path: NodePath) {
-		let node = path.node as btypes.StringLiteral;
+		let node = path.node as bt.StringLiteral;
 
 		if (path.state.expression !== '')
 			path.state.expression += ',';
-		path.state.expression += '\'' + node.value.toString() + '\'';
+		path.state.expression += '\'' + node.value + '\'';
 	}
 	UnaryExpression = function (path: NodePath) {
-		let node = path.node as btypes.UnaryExpression;
+		let node = path.node as bt.UnaryExpression;
 
 		path.state.expression = node.operator;
 	}
@@ -212,16 +231,16 @@ export class FilterVisitor {
 
 export class SelectVisitor {
 	Identifier = function (path: NodePath) {
-		let node = path.node as btypes.Identifier;
+		let node = path.node as bt.Identifier;
 
 		if (path.listKey === 'params' && isFunctionExpression(path.parent))
 			path.state.paramName = node.name;
 	}
 	Property = function (path: NodePath) {
-		let node = path.node as btypes.ObjectProperty;
+		let node = path.node as bt.ObjectProperty;
 
 		let expression: string;
-		let isCompute = !btypes.isMemberExpression(node.value);
+		let isCompute = !bt.isMemberExpression(node.value);
 		let kind: SelectKind;
 		if (isCompute) {
 			let state = {
@@ -238,7 +257,7 @@ export class SelectVisitor {
 			kind = state.kind;
 		}
 		else {
-			if (btypes.isMemberExpression(node.value))
+			if (bt.isMemberExpression(node.value))
 				expression = helpers.getPropertyPath(node.value);
 			else
 				throw Error('Property value must be member expression');
@@ -291,7 +310,69 @@ function binaryOperatorToOdata(operatorKind: string): string {
 	}
 }
 
-function getPropertyPath(node: btypes.MemberExpression, state: any): string {
+function fixEnum(path: NodePath): [bt.Node, string] | undefined {
+	let entitySetContext: EntitySetContext = path.state.entitySetContext;
+	if (!entitySetContext.odataParser || !entitySetContext.odataNamespace)
+		return undefined;
+
+	let paramName: string = path.state.paramName;
+	let binaryNode = path.node as bt.BinaryExpression;
+	let propertyNode: bt.MemberExpression;
+	let valueNode: bt.Node;
+	if (isEntityProperty(binaryNode.left, paramName)) {
+		if (isEntityProperty(binaryNode.right, paramName))
+			return undefined;
+		propertyNode = binaryNode.left;
+		valueNode = binaryNode.right;
+	}
+	else if (isEntityProperty(binaryNode.right, paramName)) {
+		if (isEntityProperty(binaryNode.left, paramName))
+			return undefined;
+		propertyNode = binaryNode.right;
+		valueNode = binaryNode.left;
+	}
+	else
+		return undefined;
+
+	let entityDef: EntityDefinition = entitySetContext.getEntityDefinition(propertyNode);
+	let propertyDef: PropertyDefinition | undefined = entityDef.properties.get(propertyNode.property.name);
+	if (!propertyDef || !propertyDef.isEnum)
+		return undefined;
+
+	let enumValue: string = '';
+	if (bt.isMemberExpression(valueNode)) {
+		enumValue = valueNode.property.name as string;
+		if (path.state.scope && path.state.scope[enumValue] !== undefined) {
+			if (path.state.scope[enumValue] === null)
+				return [propertyNode, 'null'];
+
+			enumValue = path.state.scope[enumValue] as string;
+		}
+	}
+	else if (bt.isStringLiteral(valueNode))
+		enumValue = valueNode.value;
+	else if (bt.isIdentifier(valueNode)) {
+		if (path.state.scope && path.state.scope[valueNode.name] !== undefined) {
+			if (path.state.scope[valueNode.name] === null)
+				return [propertyNode, 'null'];
+
+			enumValue = path.state.scope[valueNode.name] as string;
+		}
+	}
+	else if (bt.isNullLiteral(valueNode))
+		return [propertyNode, 'null'];
+
+	if (enumValue === '')
+		return undefined;
+
+	if (helpers.isEnumTextValue(enumValue, entitySetContext.odataNamespace))
+		return [propertyNode, enumValue];
+
+	enumValue = entitySetContext.odataNamespace + '.' + propertyDef.propertyType + '\'' + enumValue + '\'';
+	return [propertyNode, enumValue];
+}
+
+function getPropertyPath(node: bt.MemberExpression, state: any): string {
 	let propertyPath = helpers.getPropertyPath(node);
 	let entitySetContext = state.entitySetContext as EntitySetContext;
 	if (entitySetContext.isGroupby()) {
@@ -306,42 +387,42 @@ function getPropertyPath(node: btypes.MemberExpression, state: any): string {
 	return propertyPath;
 }
 
-function getVariableTextNode(node: btypes.Node, odataNamespace: string, scope?: any): string {
+function getVariableTextNode(node: bt.Node, odataNamespace: string, scope?: any): string {
 	if (scope)
-		if (btypes.isIdentifier(node) || btypes.isMemberExpression(node)) {
-			let parameterName: string = btypes.isMemberExpression(node) ? node.property.name : node.name;
+		if (bt.isIdentifier(node) || bt.isMemberExpression(node)) {
+			let parameterName: string = bt.isMemberExpression(node) ? node.property.name : node.name;
 			let value: any = scope[parameterName];
 			if (value !== undefined)
 				return helpers.getVariableTextValue(value, odataNamespace);
 
-			if (btypes.isIdentifier(node))
+			if (bt.isIdentifier(node))
 				throw Error(node.name + ' not found in scope');
 		}
 
-	if (btypes.isStringLiteral(node)) {
+	if (bt.isStringLiteral(node)) {
 		if (helpers.isEnumTextValue(node.value, odataNamespace))
 			return node.value;
 		return '\'' + node.value + '\''
 	}
 
-	if (btypes.isNumericLiteral(node))
+	if (bt.isNumericLiteral(node))
 		return node.value.toString();
 
-	if (btypes.isNullLiteral(node))
+	if (bt.isNullLiteral(node))
 		return 'null';
 
-	if (btypes.isMemberExpression(node)) {
+	if (bt.isMemberExpression(node)) {
 		let expression: string = '';
 		if (odataNamespace) {
-			if (btypes.isMemberExpression(node.object)) {
-				if (btypes.isIdentifier(node.object.property))
+			if (bt.isMemberExpression(node.object)) {
+				if (bt.isIdentifier(node.object.property))
 					expression = odataNamespace + '.' + node.object.property.name;
-				else if (btypes.isStringLiteral(node.object.property))
+				else if (bt.isStringLiteral(node.object.property))
 					expression = odataNamespace + '.' + node.object.property.value;
 				else
 					throw Error('Unknown enum property type ' + node.object.property.type);
 			}
-			else if (btypes.isIdentifier(node.object))
+			else if (bt.isIdentifier(node.object))
 				expression = odataNamespace + '.' + node.object.name;
 			else
 				throw new Error("Unknown text value " + node.type)
@@ -352,30 +433,30 @@ function getVariableTextNode(node: btypes.Node, odataNamespace: string, scope?: 
 	throw Error('getVariableTextNode invalid node type ' + node.type);
 }
 
-function isEntityProperty(node: btypes.Node, paramName: string): boolean {
-	if (btypes.isMemberExpression(node)) {
+function isEntityProperty(node: bt.Node, paramName: string): node is bt.MemberExpression {
+	if (bt.isMemberExpression(node)) {
 		do {
 			node = node.object;
 		}
-		while (btypes.isMemberExpression(node));
-		return btypes.isIdentifier(node) && node.name === paramName;
+		while (bt.isMemberExpression(node));
+		return bt.isIdentifier(node) && node.name === paramName;
 	}
 
 	return false;
 }
 
-function isFunctionExpression(node: btypes.Node): node is btypes.ArrowFunctionExpression | btypes.FunctionExpression {
-	return btypes.isArrowFunctionExpression(node) || btypes.isFunctionExpression(node);
+function isFunctionExpression(node: bt.Node): node is bt.ArrowFunctionExpression | bt.FunctionExpression {
+	return bt.isArrowFunctionExpression(node) || bt.isFunctionExpression(node);
 }
 
-function isParenthesized(node: btypes.Node) {
+function isParenthesized(node: bt.Node) {
 	return (node as any).extra?.parenthesized === true;
 }
 
 function parseNestedFunction(path: NodePath): string {
-	let node = path.node as btypes.CallExpression;
+	let node = path.node as bt.CallExpression;
 
-	if (!(isFunctionExpression(node.arguments[0]) && btypes.isIdentifier(node.arguments[0].params[0])))
+	if (!(isFunctionExpression(node.arguments[0]) && bt.isIdentifier(node.arguments[0].params[0])))
 		throw Error('Argument must be function');
 
 	let state = {
@@ -385,14 +466,14 @@ function parseNestedFunction(path: NodePath): string {
 		expression: '',
 		paramName: node.arguments[0].params[0].name
 	};
-	if (btypes.isArrowFunctionExpression(node.arguments[0]))
+	if (bt.isArrowFunctionExpression(node.arguments[0]))
 		traverse.node(node.arguments[0], path.state.visitor, path.scope, state, path, { params: true });
 	else
 		traverse.node(node.arguments[0].body, path.state.visitor, path.scope, state, path);
 	return state.expression;
 }
 
-function traverseNode(path: NodePath, node: btypes.Node, skipKey: string): string {
+function traverseNode(path: NodePath, node: bt.Node, skipKey: string): string {
 	let state = {
 		visitor: path.state.visitor,
 		scope: path.state.scope,

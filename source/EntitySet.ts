@@ -1,12 +1,12 @@
-import { Request, Headers, fetch } from 'cross-fetch';
 import { parseExpression } from '@babel/parser';
-import * as btypes from '@babel/types';
 import traverse from '@babel/traverse';
-import { OdataParser } from './OdataParser';
-import { FilterVisitor, SelectVisitor } from './visitors';
+import * as btypes from '@babel/types';
+import { fetch, Headers, Request } from 'cross-fetch';
 import { EntitySetContext } from './EntitySetContext';
 import * as helpers from './helpers';
-import * as types from './types'
+import { OdataParser } from './OdataParser';
+import * as types from './types';
+import { FilterVisitor, SelectVisitor } from './visitors';
 
 export class EntitySet<TEntity extends object> {
     protected readonly entitySetContext: EntitySetContext;
@@ -18,10 +18,10 @@ export class EntitySet<TEntity extends object> {
     count(): number {
         throw Error('TODO');
     }
-    static create<TEntity extends object>(baseUrl: string, entitySet: string, odataNamespace?: string): EntitySet<TEntity> {
+    static create<TEntity extends object>(baseUrl: string, entitySet: string, odataNamespace?: string, odataParser?: OdataParser): EntitySet<TEntity> {
         if (baseUrl.charAt(baseUrl.length - 1) != '/')
             baseUrl += '/';
-        return new EntitySet<TEntity>(new EntitySetContext(baseUrl, entitySet, null, '', odataNamespace));
+        return new EntitySet<TEntity>(new EntitySetContext(baseUrl, entitySet, null, '', odataNamespace, odataParser));
     }
     static default<TEntity extends object>(): EntitySet<TEntity> {
         return new EntitySet<TEntity>(new EntitySetContext('', '', null, '', ''));
@@ -154,10 +154,10 @@ export class EntitySet<TEntity extends object> {
         let ast: btypes.Expression = parseExpression(code);
         let visitor = new FilterVisitor();
         let state = {
-            visitor,
-            scope,
             entitySetContext: this.entitySetContext,
-            expression: ''
+            expression: '',
+            scope,
+            visitor
         };
         traverse(ast, visitor, {}, state);
         return state.expression;
@@ -173,10 +173,10 @@ export class EntitySet<TEntity extends object> {
         let ast: btypes.Expression = parseExpression(code);
         let visitor = new SelectVisitor();
         let state = {
-            visitor,
-            scope,
             entitySetContext: this.entitySetContext,
-            properties: new Array<types.SelectExpression>()
+            scope,
+            properties: new Array<types.SelectExpression>(),
+            visitor
         };
         traverse(ast, visitor, {}, state);
         return state.properties;

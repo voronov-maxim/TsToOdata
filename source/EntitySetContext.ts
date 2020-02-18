@@ -1,4 +1,6 @@
+import * as bt from '@babel/types';
 import * as helpers from './helpers';
+import { EntityDefinition, OdataParser, PropertyDefinition } from './OdataParser';
 import { SelectExpression, SelectKind } from './types';
 
 type OrderbyItem = { property: string, direction: boolean };
@@ -14,15 +16,17 @@ export class EntitySetContext {
     private readonly selectItems: Array<SelectExpression>;
     private keyItem: any;
     private navigationPathItem: string;
+    private readonly navigationProperty: string;
     private skipItem: number;
     private topItem: number;
 
-    constructor(baseUrl: string, entitySet: string, parent: EntitySetContext | null, navigationProperty: string, odataNamespace?: string) {
+    constructor(baseUrl: string, entitySet: string, parent: EntitySetContext | null, navigationProperty: string, odataNamespace?: string, odataParser?: OdataParser) {
         this.baseUrl = baseUrl;
         this.entitySet = entitySet;
         this.parent = parent;
         this.navigationProperty = navigationProperty;
         this.odataNamespace = odataNamespace ?? '';
+        this.odataParser = odataParser;
 
         this.expandItems = new Array<EntitySetContext>();
         this.filterItems = new Array<FilterByItem>();
@@ -38,7 +42,7 @@ export class EntitySetContext {
     addExpand(property: string): EntitySetContext {
         let navigationItem: EntitySetContext | null = this.findExpandItem(property);
         if (navigationItem === null) {
-            navigationItem = new EntitySetContext(this.baseUrl, this.entitySet, this, property, this.odataNamespace);
+            navigationItem = new EntitySetContext(this.baseUrl, this.entitySet, this, property, this.odataNamespace, this.odataParser);
             this.expandItems.push(navigationItem);
         }
         return navigationItem;
@@ -104,6 +108,39 @@ export class EntitySetContext {
     }
     getCompute(): string {
         return this.isGroupby() ? '' : this.getSelectKind(SelectKind.Compute);
+    }
+    getEntityDefinition(navigationPath?: bt.MemberExpression): EntityDefinition {
+        if (!this.odataParser)
+            throw Error('OdataPaser not defined');
+
+        let navigationProperties = new Array<string>();
+        let entitySetContext: EntitySetContext = this;
+        while (entitySetContext.parent) {
+            navigationProperties.push(entitySetContext.navigationProperty);
+            entitySetContext = entitySetContext.parent;
+        }
+
+        let entityDef = this.odataParser.enitites.get(entitySetContext.entitySet) as EntityDefinition;
+        while (navigationProperties.length > 0) {
+            let propertyDef: PropertyDefinition = entityDef.properties.get(navigationProperties.pop() as string) as PropertyDefinition;
+            entityDef = propertyDef.propertyType as EntityDefinition;
+        }
+
+        if (navigationPath) {
+            let navigationProperties = new Array<string>();
+            let node: bt.MemberExpression = navigationPath;
+            while (bt.isMemberExpression(node.object)) {
+                node = node.object;
+                navigationProperties.push(node.property.name);
+            }
+
+            while (navigationProperties.length > 0) {
+                let propertyDef: PropertyDefinition = entityDef.properties.get(navigationProperties.pop() as string) as PropertyDefinition;
+                entityDef = propertyDef.propertyType as EntityDefinition;
+            }
+        }
+
+        return entityDef;
     }
     getExpand(): string {
         let expanded: string = '';
@@ -268,6 +305,6 @@ export class EntitySetContext {
 
     readonly baseUrl: string;
     readonly entitySet: string;
-    readonly navigationProperty: string;
-    readonly odataNamespace: string
+    readonly odataNamespace: string;
+    readonly odataParser?: OdataParser;
 }
