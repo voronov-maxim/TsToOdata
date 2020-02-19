@@ -1,7 +1,9 @@
+import { default as visitors } from '@babel/traverse';
 import * as bt from '@babel/types';
 import * as helpers from './helpers';
 import { EntityDefinition, OdataParser, PropertyDefinition } from './OdataParser';
 import { SelectExpression, SelectKind } from './types';
+import { FilterVisitor, SelectVisitor } from './visitors';
 
 type OrderbyItem = { property: string, direction: boolean };
 type FilterByItem = { expression: string, isBeforeApply: boolean };
@@ -37,6 +39,11 @@ export class EntitySetContext {
         this.navigationPathItem = '';
         this.skipItem = NaN;
         this.topItem = NaN;
+
+        this.filterVisitor = new FilterVisitor();
+        this.selectVisitor = new SelectVisitor();
+        visitors.explode(this.filterVisitor);
+        visitors.explode(this.selectVisitor);
     }
 
     addExpand(property: string): EntitySetContext {
@@ -307,4 +314,7 @@ export class EntitySetContext {
     readonly entitySet: string;
     readonly odataNamespace: string;
     readonly odataParser?: OdataParser;
+
+    readonly filterVisitor: FilterVisitor;
+    readonly selectVisitor: SelectVisitor;
 }

@@ -1,12 +1,11 @@
 import { parseExpression } from '@babel/parser';
 import traverse from '@babel/traverse';
-import * as btypes from '@babel/types';
+import * as bt from '@babel/types';
 import { fetch, Headers, Request } from 'cross-fetch';
 import { EntitySetContext } from './EntitySetContext';
 import * as helpers from './helpers';
 import { OdataParser } from './OdataParser';
 import * as types from './types';
-import { FilterVisitor, SelectVisitor } from './visitors';
 
 export class EntitySet<TEntity extends object> {
     protected readonly entitySetContext: EntitySetContext;
@@ -15,8 +14,18 @@ export class EntitySet<TEntity extends object> {
         this.entitySetContext = entitySetContext;
     }
 
-    count(): number {
-        throw Error('TODO');
+    async count(): Promise<number> {
+        let queryUrl: URL = this.getQueryUrl();
+        queryUrl.pathname += '/$count';
+        let request = new Request(queryUrl.href, {
+            headers: new Headers({
+                "Content-Type": "application/json"
+            }),
+            method: "GET"
+        });
+        let resonse: Response = await fetch(request);
+        let body: string = await resonse.text();
+        return parseInt(body);
     }
     static create<TEntity extends object>(baseUrl: string, entitySet: string, odataNamespace?: string, odataParser?: OdataParser): EntitySet<TEntity> {
         if (baseUrl.charAt(baseUrl.length - 1) != '/')
@@ -151,34 +160,32 @@ export class EntitySet<TEntity extends object> {
         return this;
     }
     protected traverseFilter(code: string, scope?: object): string {
-        let ast: btypes.Expression = parseExpression(code);
-        let visitor = new FilterVisitor();
+        let ast: bt.Expression = parseExpression(code);
         let state = {
             entitySetContext: this.entitySetContext,
             expression: '',
             scope,
-            visitor
+            visitor: this.entitySetContext.filterVisitor
         };
-        traverse(ast, visitor, {}, state);
+        traverse(ast, state.visitor, {}, state);
         return state.expression;
     }
     protected traversePropertyPath(code: string): string {
-        let body: btypes.Expression = helpers.getFunctionBody(parseExpression(code) as btypes.ArrowFunctionExpression);
-        if (btypes.isMemberExpression(body))
+        let body: bt.Expression = helpers.getFunctionBody(parseExpression(code) as bt.ArrowFunctionExpression);
+        if (bt.isMemberExpression(body))
             return helpers.getPropertyPath(body);
 
         throw new Error('Invalid function body ' + code);
     }
     protected traverseSelect(code: string, scope?: object): Array<types.SelectExpression> {
-        let ast: btypes.Expression = parseExpression(code);
-        let visitor = new SelectVisitor();
+        let ast: bt.Expression = parseExpression(code);
         let state = {
             entitySetContext: this.entitySetContext,
             scope,
             properties: new Array<types.SelectExpression>(),
-            visitor
+            visitor: this.entitySetContext.selectVisitor
         };
-        traverse(ast, visitor, {}, state);
+        traverse(ast, state.visitor, {}, state);
         return state.properties;
     }
 }
@@ -209,7 +216,7 @@ export class ExpandableEntitySet<TEntity extends object, TProperty extends objec
     }
     thenOrderbyImpl(keySelector: (value: TItem) => types.NullableStructural, direction: boolean): ExpandableEntitySet<TEntity, TProperty, TItem> {
         let code = keySelector.toString();
-        let body: btypes.Expression = helpers.getFunctionBody(parseExpression(code) as btypes.ArrowFunctionExpression);
+        let body: bt.Expression = helpers.getFunctionBody(parseExpression(code) as bt.ArrowFunctionExpression);
         let propertyPath: string = this.traversePropertyPath(code);
         this.entitySetContext.addOrderby(propertyPath, direction);
         return this;

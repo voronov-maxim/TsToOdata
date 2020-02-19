@@ -198,6 +198,8 @@ export class QueryTests {
     }
     count(): void {
         //not applicable
+        //let count = await this.context.Orders.count();
+        //return count;
     }
     dbQuery(): void {
         let url: URL = this.context.OrderItemsView.orderby(i => i.Name).orderby(i => i.Product).getQueryUrl();
@@ -906,7 +908,7 @@ export class QueryTests {
             throw 'expected: ' + expectedQuery + '\r\n' + 'actual: ' + actualQuery;
 
         console.log(expected);
-        //this.execute(actual);
+        this.execute(actual);
     }
     equalUrl(expected: URL, actual: URL): void {
         if (expected.href !== actual.href)

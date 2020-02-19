@@ -1,4 +1,4 @@
-import { default as traverse, default as visitors, NodePath } from '@babel/traverse';
+import { default as traverse, NodePath } from '@babel/traverse';
 import * as bt from '@babel/types';
 import { EntitySetContext } from './EntitySetContext';
 import * as helpers from './helpers';
@@ -239,19 +239,19 @@ export class SelectVisitor {
 	Property = function (path: NodePath) {
 		let node = path.node as bt.ObjectProperty;
 
+		let entitySetContext = path.state.entitySetContext as EntitySetContext;
 		let expression: string;
 		let isCompute = !bt.isMemberExpression(node.value);
 		let kind: SelectKind;
 		if (isCompute) {
 			let state = {
-				visitor: new FilterVisitor(),
+				visitor: entitySetContext.filterVisitor,
 				scope: path.state.scope,
 				expression: '',
 				paramName: path.state.paramName,
-				entitySetContext: path.state.entitySetContext,
-				kind: path.state.entitySetContext.isGroupby() ? SelectKind.Aggregate : SelectKind.Compute
+				entitySetContext,
+				kind: entitySetContext.isGroupby() ? SelectKind.Aggregate : SelectKind.Compute
 			};
-			visitors.explode(state.visitor);
 			traverse.node(path.node, state.visitor, path.scope, state, path, { key: true });
 			expression = state.expression;
 			kind = state.kind;

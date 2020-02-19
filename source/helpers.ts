@@ -1,12 +1,12 @@
-import * as btypes from '@babel/types';
+import * as bt from '@babel/types';
 
-export function getPropertyPath(node: btypes.MemberExpression): string {
+export function getPropertyPath(node: bt.MemberExpression): string {
 	let expression: string = '';
 	do {
 		expression = node.property.name + (expression === '' ? '' : '/' + expression);
-		node = node.object as btypes.MemberExpression;
+		node = node.object as bt.MemberExpression;
 	}
-	while (btypes.isMemberExpression(node));
+	while (bt.isMemberExpression(node));
 	return expression;
 }
 
@@ -47,13 +47,13 @@ export function isEnumTextValue(textValue: string, odataNamespace: string): bool
 	return i > 0 && i < textValue.length - 2;
 }
 
-export function getFunctionBody(node: btypes.ArrowFunctionExpression | btypes.FunctionExpression): btypes.Expression {
-	let expression: btypes.Node = node.body;
-	if (btypes.isBlockStatement(expression))
+export function getFunctionBody(node: bt.ArrowFunctionExpression | bt.FunctionExpression): bt.Expression {
+	let expression: bt.Node = node.body;
+	if (bt.isBlockStatement(expression))
 		expression = expression.body[0];
-	if (btypes.isReturnStatement(expression))
-		expression = expression.argument as btypes.Expression;
-	if (btypes.isExpression(expression))
+	if (bt.isReturnStatement(expression))
+		expression = expression.argument as bt.Expression;
+	if (bt.isExpression(expression))
 		return expression;
 
 	throw Error('Invalid function body type ' + node.body.type);
