@@ -710,6 +710,18 @@ export class QueryTests {
         let url: URL = this.context.Orders.key(1, o => o.Items).orderby(i => i.Count).orderby(i => i.Price).getQueryUrl();
         this.equal('Orders(1)/Items?$orderby=Count,Price', url);
     }
+    mathFunctions() {
+        let url: URL = this.context.OrderItems
+            .select(i => {
+                return {
+                    Price: i.Price,
+                    Ceiling: Math.ceil(i.Price),
+                    Floor: Math.floor(i.Price),
+                    Round: Math.round(i.Price)
+                }
+            }).orderby(g => g.Price).getQueryUrl();
+        this.equal('OrderItems?$select=Price&$compute=ceiling(Price) as Ceiling,floor(Price) as Floor,round(Price) as Round&$orderby=Price', url);
+    }
     orderByColumnsMissingInSelect(): void {
         let url: URL = this.context.OrderItems.orderbyDescending(i => i.Count).orderby(i => i.Order.Customer.Name).orderbyDescending(i => i.Id)
             .select(i => {
@@ -805,6 +817,30 @@ export class QueryTests {
         let url: URL = this.context.Orders.orderby(o => o.Id).getQueryUrl();
         this.equal('Orders?$orderby=Id', url);
     }
+    timeDateTimeFunction(): void {
+        let url: URL = this.context.Categories
+            .select(c => {
+                return {
+                    DateTime: c.DateTime,
+                    Hour: c.DateTime.getHours(),
+                    Minute: c.DateTime.getMinutes(),
+                    Second: c.DateTime.getSeconds()
+                }
+            }).orderby(c => c.DateTime).getQueryUrl();
+        this.equal('Categories?$select=DateTime&$compute=hour(DateTime) as Hour,minute(DateTime) as Minute,second(DateTime) as Second&$orderby=DateTime', url);
+    }
+    timeDateTimeOffsetFunction(): void {
+        let url: URL = this.context.Orders
+            .select(o => {
+                return {
+                    Date: o.Date,
+                    Hour: o.Date.getHours(),
+                    Minute: o.Date.getMinutes(),
+                    Second: o.Date.getSeconds()
+                }
+            }).orderby(o => o.Date).getQueryUrl();
+        this.equal('Orders?$select=Date&$compute=hour(Date) as Hour,minute(Date) as Minute,second(Date) as Second&$orderby=Date', url);
+    }
     topSkip(): void {
         let url: URL = this.context.Customers.orderby(o => o.Id).skip(2).top(3).getQueryUrl();
         this.equal('Customers?$orderby=Id&$skip=2&$top=3', url);
@@ -889,6 +925,7 @@ export class QueryTests {
         this.keyMultipleNavigationOne();
         this.keyNavigationGroupBy();
         this.keyOrderBy();
+        this.mathFunctions();
         this.orderByColumnsMissingInSelect();
         this.orderByColumnsMissingInSelectNavigationFirst();
         this.orderByDesc();
@@ -899,6 +936,8 @@ export class QueryTests {
         this.selectName();
         this.selectNestedName();
         this.table();
+        this.timeDateTimeFunction();
+        this.timeDateTimeOffsetFunction();
         this.topSkip();
     }
     equal(expected: string, actual: URL): void {
@@ -908,7 +947,7 @@ export class QueryTests {
             throw 'expected: ' + expectedQuery + '\r\n' + 'actual: ' + actualQuery;
 
         console.log(expected);
-        this.execute(actual);
+        //this.execute(actual);
     }
     equalUrl(expected: URL, actual: URL): void {
         if (expected.href !== actual.href)

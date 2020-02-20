@@ -22,7 +22,13 @@ export type Structural =
     | number
     | bigint
     | symbol
-    | Date;
+    | Date
+    | Required<string>
+    | Required<boolean>
+    | Required<number>
+    | Required<bigint>
+    | Required<symbol>
+    | Required<Date>;
 
 export type NullableStructural = Structural | undefined;
 

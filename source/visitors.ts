@@ -54,8 +54,16 @@ export class FilterVisitor {
 			let propertyName: string = node.callee.property.name;
 			let funcName: string = '';
 
-			if (propertyName === 'endsWith')
+			if (propertyName === 'ceil') {
+				if (bt.isIdentifier(node.callee.object) && node.callee.object.name === 'Math')
+					funcName = 'ceiling';
+			}
+			else if (propertyName === 'endsWith')
 				funcName = 'endswith';
+			else if (propertyName === 'floor') {
+				if (bt.isIdentifier(node.callee.object) && node.callee.object.name === 'Math')
+					funcName = 'floor';
+			}
 			else if (propertyName === 'getFullYear')
 				funcName = 'year';
 			else if (propertyName === 'getMonth')
@@ -87,6 +95,10 @@ export class FilterVisitor {
 			}
 			else if (propertyName === 'indexOf')
 				funcName = 'indexof';
+			else if (propertyName === 'round') {
+				if (bt.isIdentifier(node.callee.object) && node.callee.object.name === 'Math')
+					funcName = 'round';
+			}
 			else if (propertyName === 'startsWith')
 				funcName = 'startswith';
 			else if (propertyName === 'substring')
@@ -99,12 +111,19 @@ export class FilterVisitor {
 				funcName = 'trim';
 
 			if (funcName !== '') {
+				let argumentsLength: number = node.arguments.length;
 				if (bt.isMemberExpression(node.callee.object))
 					funcName += '(' + getPropertyPath(node.callee.object, path.state);
-				else
+				else if (bt.isCallExpression(node.callee.object))
 					funcName += '(' + traverseNode(path, node.callee, 'property');
+				else if (bt.isIdentifier(node.callee.object)) {
+					funcName += '(' + getPropertyPath(node.arguments[0] as bt.MemberExpression, path.state);
+					argumentsLength = 0;
+				} 
+				else
+					throw Error('Unsupported function ' + propertyName)
 
-				for (let i = 0; i < node.arguments.length; i++)
+				for (let i = 0; i < argumentsLength; i++)
 					funcName += ',' + getVariableTextNode(node.arguments[i], path.state.entitySetContext.odataNamespace, path.state.scope);
 				path.state.expression = funcName + ')';
 				path.skip();
