@@ -72,8 +72,24 @@ export class OdataParserTests {
         if (entityDef.entityName !== 'OrderItem')
             throw 'getEntiyDefinition failed'
     }
+    habrExample(): void {
+        let url: URL = this.context.Customers
+            .expand(c => c.Orders).thenSelect(o => { return { Date: o.Date } }).orderby(o => o.Date)
+            .asEntitySet().select(c => { return { Name: c.Name } }).orderby(c => c.Name).getQueryUrl();
+        this.equal('Customers?$expand=Orders($select=Date;$orderby=Date)&$select=Name&$orderby=Name', url);
+    }
     runAll(): void {
         this.fixEnum();
         this.getEntityDefinition();
+        this.habrExample();
+    }
+
+    equal(expected: string, actual: URL): void {
+        let expectedQuery: string = this.baseUri + '/' + expected;
+        let actualQuery: string = decodeURIComponent(actual.href).replace(/\+/g, ' ');
+        if (expectedQuery !== actualQuery)
+            throw 'expected: ' + expectedQuery + '\r\n' + 'actual: ' + actualQuery;
+
+        console.log(expected);
     }
 }

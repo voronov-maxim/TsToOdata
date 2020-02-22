@@ -150,6 +150,7 @@ export class EntitySet<TEntity extends object> {
         });
         let resonse: Response = await fetch(request);
         let body: string = await resonse.text();
+        odataParser = this.entitySetContext.odataParser ?? odataParser;
         if (odataParser)
             return odataParser.parseEntitySet(body, this.entitySetContext.entitySet) as Array<TEntity>;
         else
