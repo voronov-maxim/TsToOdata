@@ -250,6 +250,7 @@ context.Orders.filter(o => o.AltCustomerId == s.altCustomerId &&
 | toUpperCase | toupper   |
 | trim             | trim        |
 | getFullYear   | year        |
+
 To get the length of the string, you should use *OdataFunctions.stringLength*
 ```javascript
 context.Customers.filter(c => OdataFunctions.stringLength(c.Name) == 5);  
