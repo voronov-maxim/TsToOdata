@@ -23,7 +23,7 @@ using (var utf8Json = new MemoryStream())
 ```
 Create TypeScript classes from Json schema.
 To do this, you can use the library [quicktype](https://github.com/quicktype/quicktype).  
-The result is a [data schem](https://raw.githubusercontent.com/voronov-maxim/TsToOdata/master/test/order.ts), which I will use in below mentioned examples.
+The result is a [data model](https://raw.githubusercontent.com/voronov-maxim/TsToOdata/master/test/order.ts), which I will use in below mentioned examples.
 
 #### Create data access context ####  
 ```javascript
