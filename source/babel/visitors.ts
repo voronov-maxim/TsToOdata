@@ -1,10 +1,10 @@
 import { default as traverse, NodePath } from '@babel/traverse';
 import * as bt from '@babel/types';
-import { EntitySetContext } from './EntitySetContext';
-import * as helpers from './helpers';
-import { EntityDefinition, PropertyDefinition } from './OdataParser';
-import { SelectExpression, SelectKind } from './types';
-
+import { EntitySetContext } from '../EntitySetContext';
+import * as helpers from '../helpers';
+import { EntityDefinition, PropertyDefinition } from '../OdataParser';
+import { SelectExpression, SelectKind } from '../types';
+import * as bhelpers from './helpers';
 
 export class FilterVisitor {
 	BinaryExpression = function (path: NodePath) {
@@ -88,7 +88,7 @@ export class FilterVisitor {
 					if (items === '')
 						throw new Error("Unsupported includes function");
 
-					path.state.expression = getPropertyPath(node.arguments[0], path.state) + ' in (' + items + ')';
+					path.state.expression = getExpressionPropertyPath(node.arguments[0], path.state) + ' in (' + items + ')';
 					path.skip();
 					return;
 				}
@@ -113,13 +113,13 @@ export class FilterVisitor {
 			if (funcName !== '') {
 				let argumentsLength: number = node.arguments.length;
 				if (bt.isMemberExpression(node.callee.object))
-					funcName += '(' + getPropertyPath(node.callee.object, path.state);
+					funcName += '(' + getExpressionPropertyPath(node.callee.object, path.state);
 				else if (bt.isCallExpression(node.callee.object))
 					funcName += '(' + traverseNode(path, node.callee, 'property');
 				else if (bt.isIdentifier(node.callee.object)) {
-					funcName += '(' + getPropertyPath(node.arguments[0] as bt.MemberExpression, path.state);
+					funcName += '(' + getExpressionPropertyPath(node.arguments[0] as bt.MemberExpression, path.state);
 					argumentsLength = 0;
-				} 
+				}
 				else
 					throw Error('Unsupported function ' + propertyName)
 
@@ -131,20 +131,20 @@ export class FilterVisitor {
 			}
 
 			if (propertyName == 'arrayLength') {
-				path.state.expression = getPropertyPath(node.arguments[0] as bt.MemberExpression, path.state) + '/$count';
+				path.state.expression = getExpressionPropertyPath(node.arguments[0] as bt.MemberExpression, path.state) + '/$count';
 				path.skip();
 				return;
 			}
 
 			if (propertyName === 'stringLength') {
-				path.state.expression = 'length(' + getPropertyPath(node.arguments[0] as bt.MemberExpression, path.state) + ')';
+				path.state.expression = 'length(' + getExpressionPropertyPath(node.arguments[0] as bt.MemberExpression, path.state) + ')';
 				path.state.kind = SelectKind.Compute;
 				path.skip();
 				return;
 			}
 
 			if (propertyName === 'concat') {
-				funcName = getPropertyPath(node.callee.object as bt.MemberExpression, path.state);
+				funcName = getExpressionPropertyPath(node.callee.object as bt.MemberExpression, path.state);
 				for (let i = 0; i < node.arguments.length; i++) {
 					let argument: string = getVariableTextNode(node.arguments[i], path.state.entitySetContext.odataNamespace, path.state.scope);
 					funcName = 'concat(' + funcName + ',' + argument + ')';
@@ -168,9 +168,9 @@ export class FilterVisitor {
 			if (path.state.entitySetContext.isGroupby()) {
 				if (isFunctionExpression(node.arguments[0])) {
 					let expression: string;
-					let body: bt.Node = helpers.getFunctionBody(node.arguments[0]);
+					let body: bt.Node = bhelpers.getFunctionBody(node.arguments[0]);
 					if (bt.isMemberExpression(body))
-						expression = getPropertyPath(body, path.state);
+						expression = getExpressionPropertyPath(body, path.state);
 					else
 						expression = parseNestedFunction(path);
 					path.state.expression = expression + ' with ' + node.callee.property.name;
@@ -199,7 +199,7 @@ export class FilterVisitor {
 
 		let expression: string;
 		if (isEntityProperty(path.node, path.state.paramName))
-			expression = getPropertyPath(node, path.state);
+			expression = getExpressionPropertyPath(node, path.state);
 		else
 			expression = getVariableTextNode(path.node, path.state.entitySetContext.odataNamespace, path.state.scope);
 
@@ -264,7 +264,7 @@ export class SelectVisitor {
 		let kind: SelectKind;
 		if (isCompute) {
 			let state = {
-				visitor: entitySetContext.filterVisitor,
+				visitor: path.state.filterVisitor,
 				scope: path.state.scope,
 				expression: '',
 				paramName: path.state.paramName,
@@ -277,7 +277,7 @@ export class SelectVisitor {
 		}
 		else {
 			if (bt.isMemberExpression(node.value))
-				expression = helpers.getPropertyPath(node.value);
+				expression = bhelpers.getNodePropertyPath(node.value);
 			else
 				throw Error('Property value must be member expression');
 
@@ -331,7 +331,7 @@ function binaryOperatorToOdata(operatorKind: string): string {
 
 function fixEnum(path: NodePath): [bt.Node, string] | undefined {
 	let entitySetContext: EntitySetContext = path.state.entitySetContext;
-	if (!entitySetContext.odataParser || !entitySetContext.odataNamespace)
+	if (!helpers.isFixEnum(entitySetContext))
 		return undefined;
 
 	let paramName: string = path.state.paramName;
@@ -353,36 +353,26 @@ function fixEnum(path: NodePath): [bt.Node, string] | undefined {
 	else
 		return undefined;
 
-	let entityDef: EntityDefinition = entitySetContext.getEntityDefinition(propertyNode);
+	let entityDef: EntityDefinition = getEntityDefinition(entitySetContext, propertyNode);
 	let propertyDef: PropertyDefinition | undefined = entityDef.properties.get(propertyNode.property.name);
 	if (!propertyDef || !propertyDef.isEnum)
 		return undefined;
 
-	let enumValue: string = '';
-	if (bt.isMemberExpression(valueNode)) {
-		enumValue = valueNode.property.name as string;
-		if (path.state.scope && path.state.scope[enumValue] !== undefined) {
-			if (path.state.scope[enumValue] === null)
-				return [propertyNode, 'null'];
-
-			enumValue = path.state.scope[enumValue] as string;
-		}
+	let enumValue: string | null = '';
+	if (bt.isIdentifier(valueNode) || bt.isMemberExpression(valueNode)) {
+		enumValue = bt.isMemberExpression(valueNode) ? valueNode.property.name : valueNode.name;
+		if (path.state.scope !== undefined && path.state.scope[enumValue] !== undefined)
+			return [propertyNode, '@' + entitySetContext.odataNamespace + '.' + propertyDef.propertyType + '\'' + '@{' + enumValue + '}\''];
 	}
 	else if (bt.isStringLiteral(valueNode))
 		enumValue = valueNode.value;
-	else if (bt.isIdentifier(valueNode)) {
-		if (path.state.scope && path.state.scope[valueNode.name] !== undefined) {
-			if (path.state.scope[valueNode.name] === null)
-				return [propertyNode, 'null'];
-
-			enumValue = path.state.scope[valueNode.name] as string;
-		}
-	}
 	else if (bt.isNullLiteral(valueNode))
-		return [propertyNode, 'null'];
-
-	if (enumValue === '')
+		enumValue = null;
+	else
 		return undefined;
+
+	if (enumValue === null)
+		return [propertyNode, 'null'];
 
 	if (helpers.isEnumTextValue(enumValue, entitySetContext.odataNamespace))
 		return [propertyNode, enumValue];
@@ -391,8 +381,26 @@ function fixEnum(path: NodePath): [bt.Node, string] | undefined {
 	return [propertyNode, enumValue];
 }
 
-function getPropertyPath(node: bt.MemberExpression, state: any): string {
-	let propertyPath = helpers.getPropertyPath(node);
+function getEntityDefinition(entitySetContext: EntitySetContext, navigationPath?: bt.MemberExpression): EntityDefinition {
+	let entityDef: EntityDefinition = entitySetContext.getEntityDefinition();
+	if (navigationPath) {
+		let navigationProperties = new Array<string>();
+		let node: bt.MemberExpression = navigationPath;
+		while (bt.isMemberExpression(node.object)) {
+			node = node.object;
+			navigationProperties.push(node.property.name);
+		}
+
+		while (navigationProperties.length > 0) {
+			let propertyDef: PropertyDefinition = entityDef.properties.get(navigationProperties.pop() as string) as PropertyDefinition;
+			entityDef = propertyDef.propertyType as EntityDefinition;
+		}
+	}
+	return entityDef;
+}
+
+function getExpressionPropertyPath(node: bt.MemberExpression, state: any): string {
+	let propertyPath = bhelpers.getNodePropertyPath(node);
 	let entitySetContext = state.entitySetContext as EntitySetContext;
 	if (entitySetContext.isGroupby()) {
 		let alias: string = propertyPath;
@@ -412,7 +420,7 @@ function getVariableTextNode(node: bt.Node, odataNamespace: string, scope?: any)
 			let parameterName: string = bt.isMemberExpression(node) ? node.property.name : node.name;
 			let value: any = scope[parameterName];
 			if (value !== undefined)
-				return helpers.getVariableTextValue(value, odataNamespace);
+				return '{' + parameterName + '}';
 
 			if (bt.isIdentifier(node))
 				throw Error(node.name + ' not found in scope');
@@ -505,3 +513,4 @@ function traverseNode(path: NodePath, node: bt.Node, skipKey: string): string {
 	traverse.node(node, path.state.visitor, path.scope, state, path, skipKeys);
 	return state.expression;
 }
+

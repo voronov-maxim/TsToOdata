@@ -1,9 +1,6 @@
-import { default as visitors } from '@babel/traverse';
-import * as bt from '@babel/types';
 import * as helpers from './helpers';
 import { EntityDefinition, OdataParser, PropertyDefinition } from './OdataParser';
 import { SelectExpression, SelectKind } from './types';
-import { FilterVisitor, SelectVisitor } from './visitors';
 
 type OrderbyItem = { property: string, direction: boolean };
 type FilterByItem = { expression: string, isBeforeApply: boolean };
@@ -39,11 +36,6 @@ export class EntitySetContext {
         this.navigationPathItem = '';
         this.skipItem = NaN;
         this.topItem = NaN;
-
-        this.filterVisitor = new FilterVisitor();
-        this.selectVisitor = new SelectVisitor();
-        visitors.explode(this.filterVisitor);
-        visitors.explode(this.selectVisitor);
     }
 
     addExpand(property: string): EntitySetContext {
@@ -116,39 +108,6 @@ export class EntitySetContext {
     getCompute(): string {
         return this.isGroupby() ? '' : this.getSelectKind(SelectKind.Compute);
     }
-    getEntityDefinition(navigationPath?: bt.MemberExpression): EntityDefinition {
-        if (!this.odataParser)
-            throw Error('OdataPaser not defined');
-
-        let navigationProperties = new Array<string>();
-        let entitySetContext: EntitySetContext = this;
-        while (entitySetContext.parent) {
-            navigationProperties.push(entitySetContext.navigationProperty);
-            entitySetContext = entitySetContext.parent;
-        }
-
-        let entityDef = this.odataParser.enitites.get(entitySetContext.entitySet) as EntityDefinition;
-        while (navigationProperties.length > 0) {
-            let propertyDef: PropertyDefinition = entityDef.properties.get(navigationProperties.pop() as string) as PropertyDefinition;
-            entityDef = propertyDef.propertyType as EntityDefinition;
-        }
-
-        if (navigationPath) {
-            let navigationProperties = new Array<string>();
-            let node: bt.MemberExpression = navigationPath;
-            while (bt.isMemberExpression(node.object)) {
-                node = node.object;
-                navigationProperties.push(node.property.name);
-            }
-
-            while (navigationProperties.length > 0) {
-                let propertyDef: PropertyDefinition = entityDef.properties.get(navigationProperties.pop() as string) as PropertyDefinition;
-                entityDef = propertyDef.propertyType as EntityDefinition;
-            }
-        }
-
-        return entityDef;
-    }
     getExpand(): string {
         let expanded: string = '';
         for (let i = 0; i < this.expandItems.length; i++) {
@@ -203,6 +162,25 @@ export class EntitySetContext {
             return this.navigationProperty;
 
         return this.navigationProperty + '(' + nested + ')';
+    }
+    getEntityDefinition(): EntityDefinition {
+        if (!this.odataParser)
+            throw Error('OdataPaser not defined');
+
+        let navigationProperties = new Array<string>();
+        let entitySetContext: EntitySetContext = this;
+        while (entitySetContext.parent) {
+            navigationProperties.push(entitySetContext.navigationProperty);
+            entitySetContext = entitySetContext.parent;
+        }
+
+        let entityDef = this.odataParser.enitites.get(entitySetContext.entitySet) as EntityDefinition;
+        while (navigationProperties.length > 0) {
+            let propertyDef: PropertyDefinition = entityDef.properties.get(navigationProperties.pop() as string) as PropertyDefinition;
+            entityDef = propertyDef.propertyType as EntityDefinition;
+        }
+
+        return entityDef;
     }
     getFilter(): string {
         return this.getFilterIsBeforeApply(false);
@@ -314,7 +292,4 @@ export class EntitySetContext {
     readonly entitySet: string;
     readonly odataNamespace: string;
     readonly odataParser?: OdataParser;
-
-    readonly filterVisitor: FilterVisitor;
-    readonly selectVisitor: SelectVisitor;
 }

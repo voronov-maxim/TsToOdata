@@ -1,5 +1,6 @@
 import { EntitySet } from './EntitySet';
 import { OdataParser } from './OdataParser';
+import { BabelTraverse } from './babel/traverse';
 
 export abstract class OdataContext<T extends OdataContext<T>>{
     private readonly 
@@ -7,7 +8,7 @@ export abstract class OdataContext<T extends OdataContext<T>>{
         let context: T = new TCtor();
         for (const entitySet in context)
             Object.defineProperty(context, entitySet, {
-                get() { return EntitySet.create<object>(baseUrl, entitySet, odataNamespace, odataParser); }
+                get() { return EntitySet.create<object>(new BabelTraverse(), baseUrl, entitySet, odataNamespace, odataParser); }
             });
         return context;
     }

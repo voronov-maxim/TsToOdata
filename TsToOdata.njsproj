@@ -36,7 +36,10 @@
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="source\helpers.ts">
+    <TypeScriptCompile Include="source\babel\helpers.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="source\babel\traverse.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="source\index.ts">
@@ -51,16 +54,22 @@
     <TypeScriptCompile Include="source\EntitySetContext.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="source\QueryCache.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="source\types.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="source\OdataFunctions.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="source\visitors.ts">
+    <TypeScriptCompile Include="source\babel\visitors.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="source\OdataParser.ts" />
+    <TypeScriptCompile Include="source\helpers.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="test\OdataParserTests.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -73,6 +82,7 @@
     </TypeScriptCompile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="source\babel\" />
     <Folder Include="test\" />
     <Folder Include="source\" />
   </ItemGroup>

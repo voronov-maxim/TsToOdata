@@ -178,7 +178,7 @@ export class QueryTests {
             .groupby(i => { return { orderId: i.OrderId } }).select(g => {
                 return {
                     orderId: g.key.orderId,
-                    dcnt: g.countdistinct(i => i.Product.substring(0, 10)),
+                    dcnt: g.countdistinct(i => i.Product.substring(scope.pos1, scope.pos2)),
                     cnt: g.count()
                 }
             }, scope).filter(g => g.dcnt != g.cnt).orderby(g => g.orderId).getQueryUrl();

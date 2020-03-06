@@ -1,17 +1,15 @@
-import { parseExpression } from '@babel/parser';
-import traverse from '@babel/traverse';
-import * as bt from '@babel/types';
 import { fetch, Headers, Request } from 'cross-fetch';
 import { EntitySetContext } from './EntitySetContext';
-import * as helpers from './helpers';
 import { OdataParser } from './OdataParser';
 import * as types from './types';
 
 export class EntitySet<TEntity extends object> {
     protected readonly entitySetContext: EntitySetContext;
+    protected readonly traverse: types.Traverse;
 
-    protected constructor(entitySetContext: EntitySetContext) {
+    protected constructor(entitySetContext: EntitySetContext, traverse: types.Traverse) {
         this.entitySetContext = entitySetContext;
+        this.traverse = traverse;
     }
 
     async count(): Promise<number> {
@@ -27,23 +25,23 @@ export class EntitySet<TEntity extends object> {
         let body: string = await resonse.text();
         return parseInt(body);
     }
-    static create<TEntity extends object>(baseUrl: string, entitySet: string, odataNamespace?: string, odataParser?: OdataParser): EntitySet<TEntity> {
+    static create<TEntity extends object>(traverse: types.Traverse, baseUrl: string, entitySet: string, odataNamespace?: string, odataParser?: OdataParser): EntitySet<TEntity> {
         if (baseUrl.charAt(baseUrl.length - 1) != '/')
             baseUrl += '/';
-        return new EntitySet<TEntity>(new EntitySetContext(baseUrl, entitySet, null, '', odataNamespace, odataParser));
+        return new EntitySet<TEntity>(new EntitySetContext(baseUrl, entitySet, null, '', odataNamespace, odataParser), traverse);
     }
     static default<TEntity extends object>(): EntitySet<TEntity> {
-        return new EntitySet<TEntity>(new EntitySetContext('', '', null, '', ''));
+        return new EntitySet<TEntity>(new EntitySetContext('', '', null, '', ''), {} as types.Traverse);
     }
     expand<TProperty extends object | undefined, TItem extends types.Unpacked<TProperty> & object>(navigationProperty: (value: TEntity) => TProperty): ExpandableEntitySet<TEntity, TProperty, TItem> {
         let code = navigationProperty.toString();
-        let propertyPath: string = this.traversePropertyPath(code);
+        let propertyPath: string = this.traverse.traversePropertyPath(code);
         let expandContext: EntitySetContext = this.entitySetContext.getRoot().addExpand(propertyPath);
-        return new ExpandableEntitySet<TEntity, TProperty, TItem>(expandContext);
+        return new ExpandableEntitySet<TEntity, TProperty, TItem>(expandContext, this.traverse);
     }
     filter(predicate: (value: types.DeepRequired<TEntity>) => boolean, scope?: object): EntitySet<TEntity> {
         let code = predicate.toString();
-        this.entitySetContext.getRoot().addFilter(this.traverseFilter(code, scope));
+        this.entitySetContext.getRoot().addFilter(this.traverse.traverseFilter(this.entitySetContext, code, scope));
         return this;
     }
     getQueryUrl(): URL {
@@ -90,10 +88,10 @@ export class EntitySet<TEntity extends object> {
     }
     groupby<TKey extends object>(keySelector: (value: types.DeepRequired<TEntity>) => TKey, scope?: object): EntitySet<types.IGrouping<TKey, TEntity>> {
         let code = keySelector.toString();
-        let properties: Array<types.SelectExpression> = this.traverseSelect(code, scope);
+        let properties: Array<types.SelectExpression> = this.traverse.traverseSelect(this.entitySetContext, code, scope);
         for (let i = 0; i < properties.length; i++)
             this.entitySetContext.addGroupBy(properties[i]);
-        return new EntitySet<types.IGrouping<TKey, TEntity>>(this.entitySetContext);
+        return new EntitySet<types.IGrouping<TKey, TEntity>>(this.entitySetContext, this.traverse);
     }
     key(key: any): EntitySet<TEntity>;
     key<TProperty extends object | undefined, TItem extends types.Unpacked<TProperty> & object>(key: any,
@@ -102,7 +100,7 @@ export class EntitySet<TEntity extends object> {
         let propertyPath: string = '';
         if (navigationProperty) {
             let code = navigationProperty.toString();
-            propertyPath = this.traversePropertyPath(code);
+            propertyPath = this.traverse.traversePropertyPath(code);
         }
 
         this.entitySetContext.getRoot().setKey(key, propertyPath);
@@ -116,7 +114,7 @@ export class EntitySet<TEntity extends object> {
     }
     orderbyImpl(keySelector: (value: types.DeepRequired<TEntity>) => types.NullableStructural, direction: boolean): EntitySet<TEntity> {
         let code = keySelector.toString();
-        let propertyPath: string = this.traversePropertyPath(code);
+        let propertyPath: string = this.traverse.traversePropertyPath(code);
         if (this.entitySetContext.isGroupby()) {
             propertyPath = propertyPath.substring('key.'.length);
             let selectExpression: types.SelectExpression | null = this.entitySetContext.getSelectExpressionByAlias(propertyPath);
@@ -131,11 +129,11 @@ export class EntitySet<TEntity extends object> {
     }
     select<TResult extends object>(selector: (value: Required<TEntity>) => TResult, scope?: object): SelectableEntitySet<TEntity, TResult> {
         let code = selector.toString();
-        let properties: Array<types.SelectExpression> = this.traverseSelect(code, scope);
+        let properties: Array<types.SelectExpression> = this.traverse.traverseSelect(this.entitySetContext, code, scope);
         let root: EntitySetContext = this.entitySetContext.getRoot();
         for (let i = 0; i < properties.length; i++)
             root.addSelect(properties[i]);
-        return new SelectableEntitySet<TEntity, TResult>(root);
+        return new SelectableEntitySet<TEntity, TResult>(root, this.traverse);
     }
     skip(count: number): EntitySet<TEntity> {
         this.entitySetContext.getRoot().setSkip(count);
@@ -160,52 +158,23 @@ export class EntitySet<TEntity extends object> {
         this.entitySetContext.getRoot().setTop(count);
         return this;
     }
-    protected traverseFilter(code: string, scope?: object): string {
-        let ast: bt.Expression = parseExpression(code);
-        let state = {
-            entitySetContext: this.entitySetContext,
-            expression: '',
-            scope,
-            visitor: this.entitySetContext.filterVisitor
-        };
-        traverse(ast, state.visitor, {}, state);
-        return state.expression;
-    }
-    protected traversePropertyPath(code: string): string {
-        let body: bt.Expression = helpers.getFunctionBody(parseExpression(code) as bt.ArrowFunctionExpression);
-        if (bt.isMemberExpression(body))
-            return helpers.getPropertyPath(body);
-
-        throw new Error('Invalid function body ' + code);
-    }
-    protected traverseSelect(code: string, scope?: object): Array<types.SelectExpression> {
-        let ast: bt.Expression = parseExpression(code);
-        let state = {
-            entitySetContext: this.entitySetContext,
-            scope,
-            properties: new Array<types.SelectExpression>(),
-            visitor: this.entitySetContext.selectVisitor
-        };
-        traverse(ast, state.visitor, {}, state);
-        return state.properties;
-    }
 }
 
 export class ExpandableEntitySet<TEntity extends object, TProperty extends object | undefined, TItem extends types.Unpacked<TProperty>> extends EntitySet<TEntity> {
-    public constructor(entitySetContext: EntitySetContext) {
-        super(entitySetContext)
+    public constructor(entitySetContext: EntitySetContext, traverse: types.Traverse) {
+        super(entitySetContext, traverse)
     }
 
     thenExpand<TNestedProperty extends object | undefined, TNestedItem extends types.Unpacked<TNestedProperty>>(navigationProperty: (value: TItem) => TNestedProperty)
         : ExpandableEntitySet<TEntity, TNestedProperty, TNestedItem> {
         let code = navigationProperty.toString();
-        let propertyPath: string = this.traversePropertyPath(code);
+        let propertyPath: string = this.traverse.traversePropertyPath(code);
         let expandContext: EntitySetContext = this.entitySetContext.addExpand(propertyPath);
-        return new ExpandableEntitySet<TEntity, TNestedProperty, TNestedItem>(expandContext);
+        return new ExpandableEntitySet<TEntity, TNestedProperty, TNestedItem>(expandContext, this.traverse);
     }
     thenFilter(predicate: (value: Required<TItem>) => boolean, scope?: object): ExpandableEntitySet<TEntity, TProperty, TItem> {
         let code = predicate.toString();
-        let expression: string = this.traverseFilter(code, scope);
+        let expression: string = this.traverse.traverseFilter(this.entitySetContext, code, scope);
         this.entitySetContext.addFilter(expression);
         return this;
     }
@@ -217,17 +186,16 @@ export class ExpandableEntitySet<TEntity extends object, TProperty extends objec
     }
     thenOrderbyImpl(keySelector: (value: TItem) => types.NullableStructural, direction: boolean): ExpandableEntitySet<TEntity, TProperty, TItem> {
         let code = keySelector.toString();
-        let body: bt.Expression = helpers.getFunctionBody(parseExpression(code) as bt.ArrowFunctionExpression);
-        let propertyPath: string = this.traversePropertyPath(code);
+        let propertyPath: string = this.traverse.traversePropertyPath(code);
         this.entitySetContext.addOrderby(propertyPath, direction);
         return this;
     }
     thenSelect<TResult extends object>(selector: (value: TItem) => TResult, scope?: object): SelectableEntitySet<TEntity, TResult> {
         let code = selector.toString();
-        let properties: Array<types.SelectExpression> = this.traverseSelect(code, scope);
+        let properties: Array<types.SelectExpression> = this.traverse.traverseSelect(this.entitySetContext, code, scope);
         for (let i = 0; i < properties.length; i++)
             this.entitySetContext.addSelect(properties[i]);
-        return new SelectableEntitySet<TEntity, TResult>(this.entitySetContext);
+        return new SelectableEntitySet<TEntity, TResult>(this.entitySetContext, this.traverse);
     }
     thenSkip(count: number): EntitySet<TEntity> {
         this.entitySetContext.setSkip(count);
@@ -240,16 +208,16 @@ export class ExpandableEntitySet<TEntity extends object, TProperty extends objec
 }
 
 export class SelectableEntitySet<TEntity extends object, TResult extends object> extends EntitySet<TEntity | TResult> {
-    public constructor(entitySetContext: EntitySetContext) {
-        super(entitySetContext)
+    public constructor(entitySetContext: EntitySetContext, traverse: types.Traverse) {
+        super(entitySetContext, traverse)
     }
 
     asEntitySet(): EntitySet<TEntity> {
-        return new EntitySet<TEntity>(this.entitySetContext.getRoot());
+        return new EntitySet<TEntity>(this.entitySetContext.getRoot(), this.traverse);
     }
     filter(predicate: (value: types.NestedRequired<TResult>) => boolean, scope?: object): SelectableEntitySet<TEntity, TResult> {
         let code = predicate.toString();
-        let expression: string = this.traverseFilter(code, scope);
+        let expression: string = this.traverse.traverseFilter(this.entitySetContext, code, scope);
         this.entitySetContext.addFilter(expression);
         return this;
     }
@@ -261,7 +229,7 @@ export class SelectableEntitySet<TEntity extends object, TResult extends object>
     }
     orderbyImpl(keySelector: (value: types.DeepRequired<TResult>) => types.NullableStructural, direction: boolean): SelectableEntitySet<TEntity, TResult> {
         let code = keySelector.toString();
-        let propertyPath: string = this.traversePropertyPath(code);
+        let propertyPath: string = this.traverse.traversePropertyPath(code);
         let selectExpression: types.SelectExpression | null = this.entitySetContext.getSelectExpressionByAlias(propertyPath);
         if (selectExpression === null)
             throw Error('Select property alias ' + propertyPath + ' not found');

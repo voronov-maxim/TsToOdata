@@ -1,14 +1,50 @@
-import * as bt from '@babel/types';
+import * as types from './types';
+import { EntitySetContext } from './EntitySetContext';
 
-export function getPropertyPath(node: bt.MemberExpression): string {
-	let expression: string = '';
-	do {
-		expression = node.property.name + (expression === '' ? '' : '/' + expression);
-		node = node.object as bt.MemberExpression;
+export function fillParameters(expression: string, scope: object, entitySetContext: EntitySetContext): string {
+	let fixEnum: boolean = isFixEnum(entitySetContext);
+	for (let parameterName in scope) {
+		let i: number;
+		let value: any = scope[parameterName];
+		let text: string;
+		if (fixEnum && typeof value === 'string' && isEnumTextValue(value, entitySetContext.odataNamespace)) {
+			i = value.lastIndexOf('\'', value.length - 2);
+			text = value.substring(i + 1, value.length - 1);
+		}
+		else
+			text = getVariableTextValue(value, entitySetContext.odataNamespace);
+
+		while ((i = expression.indexOf('{' + parameterName + '}')) >= 0) {
+			if (fixEnum && i > 2 && expression[i - 1] === '@') {
+				let j: number = expression.lastIndexOf('@', i - 2);
+				if (value === null) {
+					expression = expression.substring(0, j) + expression.substring(i, i + parameterName.length + 2) + expression.substring(i + parameterName.length + 3);
+					i = j;
+				}
+				else {
+					expression = expression.substring(0, j) + expression.substring(j + 1, i - 1) + expression.substring(i);
+					i -= 2;
+
+					if (text[0] === '\'')
+						text = text.substring(1, text.length - 1);
+				}
+			}
+
+			expression = expression.substring(0, i) + text + expression.substring(i + parameterName.length + 2);
+		}
 	}
-	while (bt.isMemberExpression(node));
 	return expression;
 }
+
+export function fillSelectParameters(selectExpressions: Array<types.SelectExpression>, scope: object, entitySetContext: EntitySetContext): Array<types.SelectExpression> {
+	for (let i: number = 0; i < selectExpressions.length; i++) {
+		let expression: string = fillParameters(selectExpressions[i].expression, scope, entitySetContext);
+		if (selectExpressions[i].expression !== expression)
+			selectExpressions[i] = new types.SelectExpression(expression, selectExpressions[i].alias, selectExpressions[i].kind);
+	}
+	return selectExpressions;
+}
+
 
 export function getVariableTextValue(value: any, odataNamespace: string): string {
 	switch (typeof value) {
@@ -47,14 +83,6 @@ export function isEnumTextValue(textValue: string, odataNamespace: string): bool
 	return i > 0 && i < textValue.length - 2;
 }
 
-export function getFunctionBody(node: bt.ArrowFunctionExpression | bt.FunctionExpression): bt.Expression {
-	let expression: bt.Node = node.body;
-	if (bt.isBlockStatement(expression))
-		expression = expression.body[0];
-	if (bt.isReturnStatement(expression))
-		expression = expression.argument as bt.Expression;
-	if (bt.isExpression(expression))
-		return expression;
-
-	throw Error('Invalid function body type ' + node.body.type);
+export function isFixEnum(entitySetContext: EntitySetContext): boolean {
+	return entitySetContext.odataParser !== undefined && entitySetContext.odataNamespace !== '';
 }

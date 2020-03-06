@@ -1,3 +1,5 @@
+import { EntitySetContext } from './EntitySetContext';
+
 export class SelectExpression {
     readonly alias: string
     readonly expression: string;
@@ -47,4 +49,10 @@ export interface IGrouping<TKey, TElement> {
     max(selector: (value: Required<TElement>) => NullableStructural): number;
     min(selector: (value: Required<TElement>) => NullableStructural): number;
     sum(selector: (value: Required<TElement>) => number | undefined): number;
+}
+
+export interface Traverse {
+    traverseFilter(entitySetContext: EntitySetContext, code: string, scope?: object): string;
+    traversePropertyPath(code: string): string;
+    traverseSelect(entitySetContext: EntitySetContext, code: string, scope?: object): Array<SelectExpression>;
 }
