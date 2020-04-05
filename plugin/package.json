@@ -2,10 +2,10 @@
   "author": {
     "name": "Maxim Voronov"
   },
-  "description": "TsToOdata",
+  "description": "TsToOdata Babel plugin",
   "homepage": "https://github.com/voronov-maxim/TsToOdata#readme",
-  "name": "ts2odata",
-  "version": "0.0.23",
+  "name": "ts2odata-babel-plugin",
+  "version": "0.0.1",
   "main": "source/index.js",
   "types": "source/index.d.ts",
   "license": "MIT",
@@ -23,8 +23,8 @@
   "files": [
     "source/*.js",
     "source/*.d.ts",
-    "source/babel/*.js",
-    "source/babel/*.d.ts"
+    "../project/source/*.js",
+    "../project/source/*.d.ts"
   ],
   "scripts": {
     "build": "tsc --build",
@@ -32,13 +32,16 @@
     "prepublishOnly": "tsc --build"
   },
   "devDependencies": {
-    "@types/node": "^13.7.1",
-    "typescript": "^3.7.5"
+    "@babel/core": "^7.8.7",
+    "@babel/generator": "^7.9.4",
+    "@babel/parser": "^7.8.7",
+    "@babel/traverse": "^7.8.6",
+    "@babel/types": "^7.8.7",
+    "@types/babel__core": "^7.1.6",
+    "@types/node": "^13.9.0",
+    "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@babel/parser": "^7.8.4",
-    "@babel/traverse": "^7.8.4",
-    "@babel/types": "^7.8.3",
     "cross-fetch": "^3.0.4"
   }
 }

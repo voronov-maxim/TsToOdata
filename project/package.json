@@ -1,0 +1,45 @@
+{
+  "author": {
+    "name": "Maxim Voronov"
+  },
+  "description": "TsToOdata",
+  "homepage": "https://github.com/voronov-maxim/TsToOdata#readme",
+  "name": "ts2odata",
+  "version": "0.0.24",
+  "main": "source/index.js",
+  "types": "source/index.d.ts",
+  "license": "MIT",
+  "keywords": [
+    "typescript",
+    "odata",
+    "client",
+    "fluent",
+    "linq"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/voronov-maxim/TsToOdata"
+  },
+  "files": [
+    "source/*.js",
+    "source/*.d.ts",
+    "source/babel/*.js",
+    "source/babel/*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "prepublishOnly": "tsc --build"
+  },
+  "devDependencies": {
+    "@types/babel__core": "^7.1.6",
+    "@types/node": "^13.9.0",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.8.7",
+    "@babel/traverse": "^7.8.6",
+    "@babel/types": "^7.8.7",
+    "cross-fetch": "^3.0.4"
+  }
+}

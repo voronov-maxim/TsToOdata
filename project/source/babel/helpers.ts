@@ -22,3 +22,6 @@ export function getNodePropertyPath(node: bt.MemberExpression): string {
 	return propertyPath;
 }
 
+export function isFunctionExpression(node: bt.Node): node is bt.ArrowFunctionExpression | bt.FunctionExpression {
+	return bt.isArrowFunctionExpression(node) || bt.isFunctionExpression(node);
+}

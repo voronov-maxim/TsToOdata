@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "module": "commonjs",
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "target": "es5",
+    "lib": [ "es2017", "dom" ],
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "esModuleInterop": true
+  },
+  "include": [
+    "source",
+    "test",
+    "app.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

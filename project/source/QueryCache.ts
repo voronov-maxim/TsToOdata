@@ -24,18 +24,23 @@ class QueryCacheImpl {
     }
     getFilterExpression(code: string): string | undefined {
         return this.filterExpressions.get(code);
-    }   
+    }
     getPropertyPath(code: string): string | undefined {
         return this.propertyPaths.get(code);
-    }   
+    }
     getSelectExpression(code: string): Array<types.SelectExpression> | undefined {
         return this.selectExpressions.get(code);
-    }   
+    }
 }
 
-let queryCache: QueryCacheImpl = new QueryCacheImpl();
-let queryCacheFixEnum: QueryCacheImpl = new QueryCacheImpl();
+let queryCache: QueryCacheImpl;
+let queryCacheFixEnum: QueryCacheImpl;
 
 export function getQueryCache(entitySetContext?: EntitySetContext): QueryCacheImpl {
+    if (!queryCache)
+        queryCache = new QueryCacheImpl();
+    if (!queryCacheFixEnum)
+        queryCacheFixEnum = new QueryCacheImpl();
+
     return entitySetContext && helpers.isFixEnum(entitySetContext) ? queryCacheFixEnum : queryCache;
 }

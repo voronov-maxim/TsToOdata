@@ -1,5 +1,4 @@
 node_modules/
-/test/awesome-json-results/
 npm-debug.log
 package-lock.json 
 
@@ -12,7 +11,9 @@ build/*/node_modules
 *.d.ts
 
 /dist
-/bin
+/plugin/bin
+/project/bin
 /.node-persist
 /.vs
-/obj
+/plugin/obj
+/project/obj
