@@ -3,7 +3,6 @@ import * as bt from '@babel/types';
 import * as bhelpers from '../../project/source/babel/helpers';
 import { BabelTraverse } from '../../project/source/babel/traverse';
 import { EntitySetContext } from '../../project/source/EntitySetContext';
-import { getQueryCache } from '../../project/source/QueryCache';
 import { SelectExpression } from '../../project/source/types';
 
 export default function () {
@@ -21,10 +20,9 @@ export class QueryCacheVisitor {
     }
     CallExpression = function (path: NodePath) {
         let node = path.node as bt.CallExpression;
-
         if (bt.isMemberExpression(node.callee) && bt.isIdentifier(node.callee.property)) {
             if (node.callee.property.name === 'getQueryUrl' || node.callee.property.name === 'toArrayAsync') {
-                let queryPaser = new QueryParser(path.scope, path.state?.opts?.extra?.odataNamespace);
+                let queryPaser = new QueryParser(getQueries(path), path.scope, path.state.opts?.extra?.odataNamespace);
                 queryPaser.parse(node);
             }
         }
@@ -32,20 +30,23 @@ export class QueryCacheVisitor {
     FunctionExpression = function (path: NodePath) {
         replaceFunctionNode(path);
     }
-}
-
-function replaceFunctionNode(path: NodePath): void {
-    if (path.node.start && path.node.start < 0)
-        path.replaceWith(bt.stringLiteral((-path.node.start).toString()));
+    Program = function (path: NodePath) {
+        let node = path.node as bt.Program;
+        let moduleName: string | undefined = path.state.opts?.extra?.checkModuleName;
+        if (moduleName && !isRequireModule(node, moduleName))
+            path.stop();
+    }
 }
 
 class QueryParser {
     private readonly babelTraverse: BabelTraverse;
     private readonly entitySetContext: EntitySetContext;
     private readonly nodes: Array<bt.CallExpression>;
+    private readonly queries: Map<bt.Node, string>;
     private readonly scope: Scope;
 
-    constructor(scope: Scope, odataNamespace: string | undefined) {
+    constructor(queries: Map<bt.Node, string>, scope: Scope, odataNamespace: string | undefined) {
+        this.queries = queries;
         this.scope = scope;
         this.babelTraverse = new BabelTraverse();
         this.entitySetContext = new EntitySetContext('http://dummy', 'dummy', null, '', odataNamespace);
@@ -92,6 +93,11 @@ class QueryParser {
     private parseNode(): void {
         while (this.nodes.length > 0) {
             let node = this.nodes.pop() as bt.CallExpression;
+            if (node.arguments.length > 2) {
+                this.queries.clear();
+                return;
+            }
+
             let callee = node.callee as bt.MemberExpression;
             let property = callee.property as bt.Identifier;
             switch (property.name) {
@@ -124,18 +130,17 @@ class QueryParser {
                 case 'thenTop':
                 case 'toArrayAsync':
                 case 'top':
-                    return;
+                    break;
                 default:
-                    throw new Error('Unknown method ' + property.name);
+                    this.queries.clear();
+                    return;
             }
         }
     }
     private traverseFilter(node: bt.CallExpression): void {
         if (bhelpers.isFunctionExpression(node.arguments[0])) {
-            let expression: string = this.babelTraverse.traverseAstFilter(this.entitySetContext, node.arguments[0], this.getScope(node));
-            let index = getNextIndex();
-            getQueryCache().addFilterExpression(index.toString(), expression);
-            node.arguments[0].start = -index;
+            let query: string = this.babelTraverse.traverseAstFilter(this.entitySetContext, node.arguments[0], this.getScope(node));
+            this.queries.set(node.arguments[0], query);
         }
     }
     private traverseGroupby(node: bt.CallExpression): void {
@@ -157,29 +162,39 @@ class QueryParser {
         if (expression === undefined)
             throw new Error('Invlid property path');
 
-        let index = getNextIndex();
-        getQueryCache().addPropertyPath(index.toString(), expression);
-        node.start = -index;
+        this.queries.set(node, expression);
     }
     private traverseSelect(node: bt.CallExpression): Array<SelectExpression> {
         if (bhelpers.isFunctionExpression(node.arguments[0])) {
-            let expression: Array<SelectExpression> = this.babelTraverse.traverseAstSelect(this.entitySetContext, node.arguments[0], this.getScope(node));
-            let index = getNextIndex();
-            getQueryCache().addSelectExpression(index.toString(), expression);
-            node.arguments[0].start = -index;
-            return expression;
+            let queries: Array<SelectExpression> = this.babelTraverse.traverseAstSelect(this.entitySetContext, node.arguments[0], this.getScope(node));
+            let json: string = JSON.stringify(queries);
+            this.queries.set(node.arguments[0], json);
+            return queries;
         }
 
         return new SelectExpression[0];
     }
 }
 
-let index: number;
+function getQueries(path: NodePath): Map<bt.Node, string> {
+    if (!path.state.queries)
+        path.state.queries = new Map<bt.Node, string>();
+    return path.state.queries;
+}
 
-function getNextIndex(): number {
-    if (index)
-        index++;
-    else
-        index = 1;
-    return index;
+function isRequireModule(node: bt.Program, moduleName: string): boolean {
+    for (let statement of node.body)
+        if (bt.isVariableDeclaration(statement))
+            for (let declaration of statement.declarations)
+                if (bt.isCallExpression(declaration.init) && bt.isIdentifier(declaration.init.callee) && declaration.init.callee.name === 'require')
+                    if (bt.isStringLiteral(declaration.init.arguments[0]) && declaration.init.arguments[0].value === moduleName)
+                        return true;
+
+    return false;
+}
+
+function replaceFunctionNode(path: NodePath): void {
+    let query: string | undefined = getQueries(path).get(path.node);
+    if (query)
+        path.replaceWith(bt.stringLiteral(query));
 }
