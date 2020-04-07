@@ -1,5 +1,5 @@
 import { parseExpression } from '@babel/parser';
-import { default as traverse, default as visitors, Scope } from '@babel/traverse';
+import { default as traverse, default as visitors, Scope, TraverseOptions } from '@babel/traverse';
 import * as bt from '@babel/types';
 import { EntitySetContext } from '../EntitySetContext';
 import * as helpers from '../helpers';
@@ -26,7 +26,7 @@ export class BabelTraverse implements types.Traverse {
 			scope,
 			visitor: this.filterVisitor
 		};
-		traverse(ast, state.visitor, {} as Scope, state);
+		traverse(ast, state.visitor as TraverseOptions, {} as Scope, state);
 		return state.expression;
 	}
 	traverseAstPropertyPath(ast: bt.Expression): string | undefined {
@@ -40,7 +40,7 @@ export class BabelTraverse implements types.Traverse {
 			visitor: this.selectVisitor,
 			filterVisitor: this.filterVisitor
 		};
-		traverse(ast, state.visitor, {} as Scope, state);
+		traverse(ast, state.visitor as TraverseOptions, {} as Scope, state);
 		return state.properties;
 	}
 	traverseFilter(entitySetContext: EntitySetContext, code: string, scope?: object): string {

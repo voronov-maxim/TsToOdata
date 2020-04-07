@@ -8,7 +8,7 @@ export abstract class OdataContext<T extends OdataContext<T>>{
         let context: T = new TCtor();
         for (const entitySet in context)
             Object.defineProperty(context, entitySet, {
-                get() { return EntitySet.create<object>(new PluginTraverse(), baseUrl, entitySet, odataNamespace, odataParser); }
+                get() { return EntitySet.create<object>(new BabelTraverse(), baseUrl, entitySet, odataNamespace, odataParser); }
             });
         return context;
     }

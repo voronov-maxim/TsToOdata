@@ -1,9 +1,9 @@
 import { Binding, NodePath, Scope } from '@babel/traverse';
 import * as bt from '@babel/types';
-import * as bhelpers from '../../project/source/babel/helpers';
-import { BabelTraverse } from '../../project/source/babel/traverse';
-import { EntitySetContext } from '../../project/source/EntitySetContext';
-import { SelectExpression } from '../../project/source/types';
+import * as bhelpers from '../../ts2odata/source/babel/helpers';
+import { BabelTraverse } from '../../ts2odata/source/babel/traverse';
+import { EntitySetContext } from '../../ts2odata/source/EntitySetContext';
+import { SelectExpression } from '../../ts2odata/source/types';
 
 export default function () {
     return {
