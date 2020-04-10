@@ -11,9 +11,9 @@ build/*/node_modules
 *.d.ts
 
 /dist
-/ts2odata-babel-plugin/bin
+/babel-plugin-ts2odata/bin
 /ts2odata/bin
 /.node-persist
 /.vs
-/ts2odata-babel-plugin/obj
+/babel-plugin-ts2odata/obj
 /ts2odata/obj

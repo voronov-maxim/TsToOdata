@@ -2,9 +2,9 @@
   "author": {
     "name": "Maxim Voronov"
   },
-  "description": "TsToOdata Babel plugin",
+  "description": "TsToOdata babel plugin",
   "homepage": "https://github.com/voronov-maxim/TsToOdata#readme",
-  "name": "ts2odata-babel-plugin",
+  "name": "babel-plugin-ts2odata",
   "version": "0.0.1",
   "main": "source/index.js",
   "types": "source/index.d.ts",
@@ -14,7 +14,9 @@
     "odata",
     "client",
     "fluent",
-    "linq"
+    "linq",
+    "babel",
+    "plugin"
   ],
   "repository": {
     "type": "git",
@@ -22,9 +24,7 @@
   },
   "files": [
     "source/*.js",
-    "source/*.d.ts",
-    "../project/source/*.js",
-    "../project/source/*.d.ts"
+    "source/*.d.ts"
   ],
   "scripts": {
     "build": "tsc --build",
@@ -39,6 +39,8 @@
     "@babel/types": "^7.8.7",
     "@types/babel__core": "^7.1.6",
     "@types/node": "^13.9.0",
+    "babel-plugin-tester": "^9.0.0",
+    "jest": "^25.3.0",
     "typescript": "^3.8.3"
   },
   "dependencies": {

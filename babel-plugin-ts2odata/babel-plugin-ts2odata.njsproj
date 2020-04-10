@@ -32,16 +32,24 @@
   <ItemGroup>
     <None Include="app.ts" />
     <Content Include="package.json" />
+    <Content Include="test\fixtures\test1\code.js" />
+    <Content Include="test\fixtures\test1\output.js" />
+    <Content Include="source\index.js">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="test\index.spec.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="test\" />
     <Folder Include="source\" />
+    <Folder Include="test\fixtures\" />
+    <Folder Include="test\fixtures\test1\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="source\index.ts" />
     <TypeScriptCompile Include="source\plugin.ts" />
-    <TypeScriptCompile Include="test\QueryTests.js" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>

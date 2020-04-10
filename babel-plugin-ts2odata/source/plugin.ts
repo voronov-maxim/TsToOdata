@@ -5,35 +5,24 @@ import { BabelTraverse } from '../../ts2odata/source/babel/traverse';
 import { EntitySetContext } from '../../ts2odata/source/EntitySetContext';
 import { SelectExpression } from '../../ts2odata/source/types';
 
-export default function () {
-    return {
-        name: 'ts2odata-babel-plugin',
-        visitor: new QueryCacheVisitor()
-    };
-}
-
 export class QueryCacheVisitor {
-    ArrowFunctionExpression = function (path: NodePath) {
-        replaceFunctionNode(path);
-        if (path.node.start && path.node.start < 0)
-            path.replaceWith(bt.stringLiteral(path.node.start.toString()));
+    ArrowFunctionExpression = function (path: NodePath, state: any) {
+        replaceFunctionNode(path, state);
     }
-    CallExpression = function (path: NodePath) {
-        let node = path.node as bt.CallExpression;
-        if (bt.isMemberExpression(node.callee) && bt.isIdentifier(node.callee.property)) {
-            if (node.callee.property.name === 'getQueryUrl' || node.callee.property.name === 'toArrayAsync') {
-                let queryPaser = new QueryParser(getQueries(path), path.scope, path.state.opts?.extra?.odataNamespace);
-                queryPaser.parse(node);
+    CallExpression = function (path: NodePath<bt.CallExpression>, state: any) {
+        if (bt.isMemberExpression(path.node.callee) && bt.isIdentifier(path.node.callee.property)) {
+            if (path.node.callee.property.name === 'getQueryUrl' || path.node.callee.property.name === 'toArrayAsync') {
+                let queryPaser = new QueryParser(getQueries(state), path.scope, state.opts?.odataNamespace);
+                queryPaser.parse(path.node);
             }
         }
     }
-    FunctionExpression = function (path: NodePath) {
-        replaceFunctionNode(path);
+    FunctionExpression = function (path: NodePath, state: any) {
+        replaceFunctionNode(path, state);
     }
-    Program = function (path: NodePath) {
-        let node = path.node as bt.Program;
-        let moduleName: string | undefined = path.state.opts?.extra?.checkModuleName;
-        if (moduleName && !isRequireModule(node, moduleName))
+    Program = function (path: NodePath<bt.Program>, state: any) {
+        let moduleName: string | undefined = state.opts.checkModuleName;
+        if (moduleName && !isRequireModule(path.node, moduleName))
             path.stop();
     }
 }
@@ -176,10 +165,10 @@ class QueryParser {
     }
 }
 
-function getQueries(path: NodePath): Map<bt.Node, string> {
-    if (!path.state.queries)
-        path.state.queries = new Map<bt.Node, string>();
-    return path.state.queries;
+function getQueries(state: any): Map<bt.Node, string> {
+    if (!state.queries)
+        state.queries = new Map<bt.Node, string>();
+    return state.queries;
 }
 
 function isRequireModule(node: bt.Program, moduleName: string): boolean {
@@ -193,8 +182,8 @@ function isRequireModule(node: bt.Program, moduleName: string): boolean {
     return false;
 }
 
-function replaceFunctionNode(path: NodePath): void {
-    let query: string | undefined = getQueries(path).get(path.node);
+function replaceFunctionNode(path: NodePath, state: any): void {
+    let query: string | undefined = getQueries(state).get(path.node);
     if (query)
         path.replaceWith(bt.stringLiteral(query));
 }

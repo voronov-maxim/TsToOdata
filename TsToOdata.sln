@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "ts2odata", "ts2odata\ts2odata.njsproj", "{9E474D00-855A-47FF-B33F-D434CCCACF94}"
 EndProject
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "ts2odata-babel-plugin", "ts2odata-babel-plugin\ts2odata-babel-plugin.njsproj", "{A6134BA3-1692-415D-AFD5-F423E0F2718C}"
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "ts2odata-babel-plugin", "babel-plugin-ts2odata\babel-plugin-ts2odata.njsproj", "{A6134BA3-1692-415D-AFD5-F423E0F2718C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
