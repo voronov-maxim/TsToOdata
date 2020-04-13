@@ -1,19 +1,20 @@
-import { Request, Headers, fetch } from 'cross-fetch';
+import { fetch, Headers, Request } from 'cross-fetch';
 import { OdataContext } from '../source/OdataContext';
 import { OdataFunctions } from '../source/OdataFunctions';
 import { OdataParser } from '../source/OdataParser';
-
-import { OrderContext } from './OrderContext';
+import { Traverse } from '../source/types';
 import * as oe from './order';
+import { OrderContext } from './OrderContext';
+
 
 export class QueryTests {
     private readonly baseUri: string;
     private readonly context: OrderContext;
     private readonly odataNamespace = 'OdataToEntity.Test.Model';
 
-    constructor(baseUri: string, odataParser?: OdataParser) {
+    constructor(traverse: Traverse, baseUri: string, odataParser?: OdataParser) {
         this.baseUri = baseUri;
-        this.context = OdataContext.create(OrderContext, baseUri, this.odataNamespace, odataParser);
+        this.context = OdataContext.create(() => new OrderContext(traverse), baseUri, this.odataNamespace, odataParser);
     }
 
     applyFilter(): void {

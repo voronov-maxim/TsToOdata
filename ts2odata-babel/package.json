@@ -2,10 +2,10 @@
   "author": {
     "name": "Maxim Voronov"
   },
-  "description": "TsToOdata babel plugin",
+  "description": "TsToOdata babel traverse",
   "homepage": "https://github.com/voronov-maxim/TsToOdata#readme",
-  "name": "babel-plugin-ts2odata",
-  "version": "0.0.1",
+  "name": "ts2odata-babel",
+  "version": "0.0.24",
   "main": "source/index.js",
   "types": "source/index.d.ts",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "fluent",
     "linq",
     "babel",
-    "plugin"
+    "traverse"
   ],
   "repository": {
     "type": "git",
@@ -32,18 +32,13 @@
     "prepublishOnly": "tsc --build"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.0",
-    "@babel/generator": "^7.9.4",
-    "@babel/parser": "^7.9.4",
-    "@babel/traverse": "^7.9.5",
-    "@babel/types": "^7.9.5",
     "@types/babel__core": "^7.1.7",
     "@types/node": "^13.11.1",
-    "babel-plugin-tester": "^9.0.1",
-    "jest": "^25.3.0",
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "cross-fetch": "^3.0.4"
+    "@babel/parser": "^7.9.4",
+    "@babel/traverse": "^7.9.5",
+    "@babel/types": "^7.9.5"
   }
 }

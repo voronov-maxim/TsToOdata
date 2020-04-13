@@ -1,11 +1,13 @@
-import { QueryTests } from './test/QueryTests';
-import { OdataParserTests } from './test/OdataParserTests';
+import { BabelTraverse } from '../ts2odata-babel/source/traverse';
 import { OdataParser } from './source/OdataParser';
+import { OdataParserTests } from './test/OdataParserTests';
+import { QueryTests } from './test/QueryTests';
 import schema from './test/schema.json';
 
 let odataParser = new OdataParser(schema);
-new OdataParserTests('http://localhost:5000/api', odataParser).runAll();
-new QueryTests('http://localhost:5000/api', odataParser).runAll();
-new QueryTests('http://localhost:5000/api').runAll();
+let traverse = new BabelTraverse();
+new OdataParserTests(traverse, 'http://localhost:5000/api', odataParser).runAll();
+new QueryTests(traverse, 'http://localhost:5000/api', odataParser).runAll();
+new QueryTests(traverse, 'http://localhost:5000/api').runAll();
 
 process.stdin.on('data', _ => process.exit());

@@ -1,9 +1,9 @@
 import { default as traverse, NodePath } from '@babel/traverse';
 import * as bt from '@babel/types';
-import { EntitySetContext } from '../EntitySetContext';
-import * as helpers from '../helpers';
-import { EntityDefinition, PropertyDefinition } from '../OdataParser';
-import { SelectExpression, SelectKind } from '../types';
+import { EntitySetContext } from '../../ts2odata/source/EntitySetContext';
+import * as helpers from '../../ts2odata/source/helpers';
+import { EntityDefinition, PropertyDefinition } from '../../ts2odata/source/OdataParser';
+import { SelectExpression, SelectKind } from '../../ts2odata/source/types';
 import * as bhelpers from './helpers';
 
 type NodePathBase = Omit<NodePath, "unshiftContainer" | "setContext">;

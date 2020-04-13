@@ -10,13 +10,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var cross_fetch_1 = require("cross-fetch");
 var OdataContext_1 = require("../../../../ts2odata/source/OdataContext");
 var OdataFunctions_1 = require("../../../../ts2odata/source/OdataFunctions");
-var OrderContext_1 = require("../../../../ts2odata/test/OrderContext");
 var oe = __importStar(require("../../../../ts2odata/test/order"));
+var OrderContext_1 = require("../../../../ts2odata/test/OrderContext");
 var QueryTests = /** @class */function () {
-  function QueryTests(baseUri, odataParser) {
+  function QueryTests(traverse, baseUri, odataParser) {
     this.odataNamespace = 'OdataToEntity.Test.Model';
     this.baseUri = baseUri;
-    this.context = OdataContext_1.OdataContext.create(OrderContext_1.OrderContext, baseUri, this.odataNamespace, odataParser);
+    this.context = OdataContext_1.OdataContext.create(function () {return new OrderContext_1.OrderContext(traverse);}, baseUri, this.odataNamespace, odataParser);
   }
   QueryTests.prototype.applyFilter = function () {
     //not applicable

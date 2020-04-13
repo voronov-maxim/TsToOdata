@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "ts2odata", "ts2odata\ts2odata.njsproj", "{9E474D00-855A-47FF-B33F-D434CCCACF94}"
 EndProject
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "ts2odata-babel-plugin", "babel-plugin-ts2odata\babel-plugin-ts2odata.njsproj", "{A6134BA3-1692-415D-AFD5-F423E0F2718C}"
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "babel-plugin-ts2odata", "babel-plugin-ts2odata\babel-plugin-ts2odata.njsproj", "{A6134BA3-1692-415D-AFD5-F423E0F2718C}"
+EndProject
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "ts2odata-babel", "ts2odata-babel\ts2odata-babel.njsproj", "{228C96C7-809B-4DAB-8720-04BBD344676B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{A6134BA3-1692-415D-AFD5-F423E0F2718C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6134BA3-1692-415D-AFD5-F423E0F2718C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6134BA3-1692-415D-AFD5-F423E0F2718C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{228C96C7-809B-4DAB-8720-04BBD344676B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{228C96C7-809B-4DAB-8720-04BBD344676B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{228C96C7-809B-4DAB-8720-04BBD344676B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{228C96C7-809B-4DAB-8720-04BBD344676B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

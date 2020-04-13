@@ -1,10 +1,10 @@
 import { parseExpression } from '@babel/parser';
 import { default as traverse, default as visitors, Scope, TraverseOptions } from '@babel/traverse';
 import * as bt from '@babel/types';
-import { EntitySetContext } from '../EntitySetContext';
-import * as helpers from '../helpers';
-import { getQueryCache } from '../QueryCache';
-import * as types from '../types';
+import { EntitySetContext } from '../../ts2odata/source/EntitySetContext';
+import * as helpers from '../../ts2odata/source/helpers';
+import { getQueryCache } from '../../ts2odata/source/QueryCache';
+import * as types from '../../ts2odata/source/types';
 import * as bhelpers from './helpers';
 import { FilterVisitor, SelectVisitor } from './visitors';
 

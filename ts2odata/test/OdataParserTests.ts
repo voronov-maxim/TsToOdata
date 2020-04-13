@@ -1,9 +1,10 @@
-import { BabelTraverse } from '../source/babel/traverse';
+import { BabelTraverse } from '../../ts2odata-babel/source/traverse';
 import { EntitySetContext } from '../source/EntitySetContext';
 import { OdataContext } from '../source/OdataContext';
 import { EntityDefinition, OdataParser } from '../source/OdataParser';
 import * as oe from './order';
 import { OrderContext } from './OrderContext';
+import { Traverse } from '../source/types';
 
 
 export class OdataParserTests {
@@ -11,9 +12,9 @@ export class OdataParserTests {
     private readonly context: OrderContext;
     private readonly odataNamespace = 'OdataToEntity.Test.Model';
 
-    constructor(baseUri: string, odataParser: OdataParser) {
+    constructor(traverse: Traverse,  baseUri: string, odataParser: OdataParser) {
         this.baseUri = baseUri;
-        this.context = OdataContext.create(OrderContext, baseUri, this.odataNamespace, odataParser);
+        this.context = OdataContext.create(() => new OrderContext(traverse), baseUri, this.odataNamespace, odataParser);
     }
 
     fixEnum(): void {
