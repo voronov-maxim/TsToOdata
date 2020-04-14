@@ -15,6 +15,7 @@
   "include": [
     "source",
     "test",
+    "scripts",
     "app.ts"
   ],
   "exclude": [

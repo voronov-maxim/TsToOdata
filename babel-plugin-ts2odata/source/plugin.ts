@@ -5,7 +5,7 @@ import { Traverse } from '../../ts2odata-babel/source/traverse';
 import { EntitySetContext } from '../../ts2odata/source/EntitySetContext';
 import { SelectExpression } from '../../ts2odata/source/types';
 
-export class QueryCacheVisitor {
+export class PluginVisitor {
     ArrowFunctionExpression = function (path: NodePath, state: any) {
         replaceFunctionNode(path, state);
     }
@@ -175,9 +175,16 @@ function isRequireModule(node: bt.Program, moduleName: string): boolean {
     for (let statement of node.body)
         if (bt.isVariableDeclaration(statement))
             for (let declaration of statement.declarations)
-                if (bt.isCallExpression(declaration.init) && bt.isIdentifier(declaration.init.callee) && declaration.init.callee.name === 'require')
-                    if (bt.isStringLiteral(declaration.init.arguments[0]) && declaration.init.arguments[0].value === moduleName)
-                        return true;
+                if (bt.isCallExpression(declaration.init)) {
+                    let requireNode: bt.CallExpression = declaration.init;
+                    if (bt.isIdentifier(requireNode.callee) && requireNode.callee.name === '__importStar')
+                        if (requireNode.arguments.length === 1 && bt.isCallExpression(requireNode.arguments[0]))
+                            requireNode = requireNode.arguments[0];
+
+                    if (bt.isIdentifier(requireNode.callee) && requireNode.callee.name === 'require')
+                        if (requireNode.arguments.length === 1 && bt.isStringLiteral(requireNode.arguments[0]) && requireNode.arguments[0].value === moduleName)
+                            return true;
+                }
 
     return false;
 }

@@ -32,6 +32,9 @@
   <ItemGroup>
     <None Include="app.ts" />
     <Content Include="package.json" />
+    <Content Include="scripts\prepublishOnly.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="test\fixtures\test1\code.js" />
     <Content Include="test\fixtures\test1\output.js" />
     <Content Include="source\index.js">
@@ -43,12 +46,16 @@
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="scripts\" />
     <Folder Include="test\" />
     <Folder Include="source\" />
     <Folder Include="test\fixtures\" />
     <Folder Include="test\fixtures\test1\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="scripts\prepublishOnlyPlugin.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="source\plugin.ts" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
