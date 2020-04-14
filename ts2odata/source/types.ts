@@ -51,7 +51,7 @@ export interface IGrouping<TKey, TElement> {
     sum(selector: (value: Required<TElement>) => number | undefined): number;
 }
 
-export interface Traverse {
+export interface TraverseBase {
     traverseFilter(entitySetContext: EntitySetContext, code: string, scope?: object): string;
     traversePropertyPath(code: string): string;
     traverseSelect(entitySetContext: EntitySetContext, code: string, scope?: object): Array<SelectExpression>;

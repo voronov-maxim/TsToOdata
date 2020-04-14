@@ -2,7 +2,7 @@ import { fetch, Headers, Request } from 'cross-fetch';
 import { OdataContext } from '../source/OdataContext';
 import { OdataFunctions } from '../source/OdataFunctions';
 import { OdataParser } from '../source/OdataParser';
-import { Traverse } from '../source/types';
+import { TraverseBase } from '../source/types';
 import * as oe from './order';
 import { OrderContext } from './OrderContext';
 
@@ -12,7 +12,7 @@ export class QueryTests {
     private readonly context: OrderContext;
     private readonly odataNamespace = 'OdataToEntity.Test.Model';
 
-    constructor(traverse: Traverse, baseUri: string, odataParser?: OdataParser) {
+    constructor(traverse: TraverseBase, baseUri: string, odataParser?: OdataParser) {
         this.baseUri = baseUri;
         this.context = OdataContext.create(() => new OrderContext(traverse), baseUri, this.odataNamespace, odataParser);
     }

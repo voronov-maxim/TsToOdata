@@ -5,9 +5,9 @@ import * as types from './types';
 
 export class EntitySet<TEntity extends object> {
     protected readonly entitySetContext: EntitySetContext;
-    protected readonly traverse: types.Traverse;
+    protected readonly traverse: types.TraverseBase;
 
-    protected constructor(entitySetContext: EntitySetContext, traverse: types.Traverse) {
+    protected constructor(entitySetContext: EntitySetContext, traverse: types.TraverseBase) {
         this.entitySetContext = entitySetContext;
         this.traverse = traverse;
     }
@@ -25,13 +25,13 @@ export class EntitySet<TEntity extends object> {
         let body: string = await resonse.text();
         return parseInt(body);
     }
-    static create<TEntity extends object>(traverse: types.Traverse, baseUrl: string, entitySet: string, odataNamespace?: string, odataParser?: OdataParser): EntitySet<TEntity> {
+    static create<TEntity extends object>(traverse: types.TraverseBase, baseUrl: string, entitySet: string, odataNamespace?: string, odataParser?: OdataParser): EntitySet<TEntity> {
         if (baseUrl.charAt(baseUrl.length - 1) != '/')
             baseUrl += '/';
         return new EntitySet<TEntity>(new EntitySetContext(baseUrl, entitySet, null, '', odataNamespace, odataParser), traverse);
     }
     static default<TEntity extends object>(): EntitySet<TEntity> {
-        return new EntitySet<TEntity>(new EntitySetContext('', '', null, '', ''), {} as types.Traverse);
+        return new EntitySet<TEntity>(new EntitySetContext('', '', null, '', ''), {} as types.TraverseBase);
     }
     expand<TProperty extends object | undefined, TItem extends types.Unpacked<TProperty> & object>(navigationProperty: (value: TEntity) => TProperty): ExpandableEntitySet<TEntity, TProperty, TItem> {
         let code = navigationProperty.toString();
@@ -161,7 +161,7 @@ export class EntitySet<TEntity extends object> {
 }
 
 export class ExpandableEntitySet<TEntity extends object, TProperty extends object | undefined, TItem extends types.Unpacked<TProperty>> extends EntitySet<TEntity> {
-    public constructor(entitySetContext: EntitySetContext, traverse: types.Traverse) {
+    public constructor(entitySetContext: EntitySetContext, traverse: types.TraverseBase) {
         super(entitySetContext, traverse)
     }
 
@@ -208,7 +208,7 @@ export class ExpandableEntitySet<TEntity extends object, TProperty extends objec
 }
 
 export class SelectableEntitySet<TEntity extends object, TResult extends object> extends EntitySet<TEntity | TResult> {
-    public constructor(entitySetContext: EntitySetContext, traverse: types.Traverse) {
+    public constructor(entitySetContext: EntitySetContext, traverse: types.TraverseBase) {
         super(entitySetContext, traverse)
     }
 

@@ -8,7 +8,7 @@ import * as types from '../../ts2odata/source/types';
 import * as bhelpers from './helpers';
 import { FilterVisitor, SelectVisitor } from './visitors';
 
-export class BabelTraverse implements types.Traverse {
+export class Traverse implements types.TraverseBase {
 	private readonly filterVisitor: FilterVisitor;
 	private readonly selectVisitor: SelectVisitor;
 

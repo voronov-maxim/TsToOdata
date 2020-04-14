@@ -1,7 +1,7 @@
 import { Binding, NodePath, Scope } from '@babel/traverse';
 import * as bt from '@babel/types';
 import * as bhelpers from '../../ts2odata-babel/source/helpers';
-import { BabelTraverse } from '../../ts2odata-babel/source/traverse';
+import { Traverse } from '../../ts2odata-babel/source/traverse';
 import { EntitySetContext } from '../../ts2odata/source/EntitySetContext';
 import { SelectExpression } from '../../ts2odata/source/types';
 
@@ -28,7 +28,7 @@ export class QueryCacheVisitor {
 }
 
 class QueryParser {
-    private readonly babelTraverse: BabelTraverse;
+    private readonly babelTraverse: Traverse;
     private readonly entitySetContext: EntitySetContext;
     private readonly nodes: Array<bt.CallExpression>;
     private readonly queries: Map<bt.Node, string>;
@@ -37,7 +37,7 @@ class QueryParser {
     constructor(queries: Map<bt.Node, string>, scope: Scope, odataNamespace: string | undefined) {
         this.queries = queries;
         this.scope = scope;
-        this.babelTraverse = new BabelTraverse();
+        this.babelTraverse = new Traverse();
         this.entitySetContext = new EntitySetContext('http://dummy', 'dummy', null, '', odataNamespace);
         this.nodes = new Array<bt.CallExpression>()
     }

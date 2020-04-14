@@ -1,10 +1,10 @@
-import { BabelTraverse } from '../../ts2odata-babel/source/traverse';
+import { Traverse } from '../../ts2odata-babel/source/traverse';
 import { EntitySetContext } from '../source/EntitySetContext';
 import { OdataContext } from '../source/OdataContext';
 import { EntityDefinition, OdataParser } from '../source/OdataParser';
 import * as oe from './order';
 import { OrderContext } from './OrderContext';
-import { Traverse } from '../source/types';
+import { TraverseBase } from '../source/types';
 
 
 export class OdataParserTests {
@@ -12,7 +12,7 @@ export class OdataParserTests {
     private readonly context: OrderContext;
     private readonly odataNamespace = 'OdataToEntity.Test.Model';
 
-    constructor(traverse: Traverse,  baseUri: string, odataParser: OdataParser) {
+    constructor(traverse: TraverseBase,  baseUri: string, odataParser: OdataParser) {
         this.baseUri = baseUri;
         this.context = OdataContext.create(() => new OrderContext(traverse), baseUri, this.odataNamespace, odataParser);
     }
@@ -21,7 +21,7 @@ export class OdataParserTests {
         const expected = "Order/Customer/Sex eq OdataToEntity.Test.Model.Sex'Male'";
         let entitySet: any = this.context.OrderItems;
         let entitySetContext = entitySet.entitySetContext as EntitySetContext;
-        let traverse = new BabelTraverse();
+        let traverse = new Traverse();
         let expression: string;
 
         expression = traverse.traverseFilter(entitySetContext, 'i => i.Order.Customer.Sex == oe.Sex.Male');

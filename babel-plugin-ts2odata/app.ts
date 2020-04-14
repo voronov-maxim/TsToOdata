@@ -4,7 +4,7 @@ import { default as traverse, Scope, TraverseOptions } from '@babel/traverse';
 import * as bt from '@babel/types';
 import * as fs from 'fs';
 import { QueryCacheVisitor } from './source/plugin';
-import { PluginTraverse } from '../ts2odata/source/PluginTraverse';
+import { Traverse } from '../ts2odata/source/Traverse';
 
 let buffer: Buffer = fs.readFileSync('../ts2odata/test/QueryTests.js');
 let code: string = buffer.toString();
@@ -18,6 +18,6 @@ let state = {
 traverse(ast, new QueryCacheVisitor() as TraverseOptions, {} as Scope, state);
 let result: GeneratorResult = generate(ast, { retainLines: true, retainFunctionParens: true });
 
-new (require('./test/fixtures/test1/output')).QueryTests(new PluginTraverse(), 'http://localhost:5000/api').runAll();
+new (require('./test/fixtures/test1/output')).QueryTests(new Traverse(), 'http://localhost:5000/api').runAll();
 
 process.stdin.on('data', _ => process.exit());

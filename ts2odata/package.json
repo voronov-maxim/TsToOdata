@@ -30,14 +30,10 @@
     "prepublishOnly": "tsc --build"
   },
   "devDependencies": {
-    "@types/babel__core": "^7.1.7",
-    "@types/node": "13.11.1",
+    "@types/node": "^13.11.1",
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@babel/parser": "^7.9.4",
-    "@babel/traverse": "^7.9.5",
-    "@babel/types": "^7.9.5",
     "cross-fetch": "^3.0.4"
   }
 }

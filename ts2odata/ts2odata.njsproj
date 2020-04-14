@@ -38,7 +38,7 @@
     <TypeScriptCompile Include="app.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="source\PluginTraverse.ts">
+    <TypeScriptCompile Include="source\Traverse.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="source\index.ts">

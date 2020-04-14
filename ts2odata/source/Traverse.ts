@@ -1,8 +1,8 @@
 import { EntitySetContext } from './EntitySetContext';
 import * as helpers from './helpers';
-import { SelectExpression, Traverse } from './types';
+import { SelectExpression, TraverseBase } from './types';
 
-export class PluginTraverse implements Traverse {
+export class Traverse implements TraverseBase {
     traverseFilter(entitySetContext: EntitySetContext, code: string, scope?: object): string {
         return scope === undefined ? code : helpers.fillParameters(code, scope, entitySetContext);
     }
