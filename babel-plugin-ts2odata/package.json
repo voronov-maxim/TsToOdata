@@ -5,7 +5,7 @@
   "description": "TsToOdata babel plugin",
   "homepage": "https://github.com/voronov-maxim/TsToOdata#readme",
   "name": "babel-plugin-ts2odata",
-  "version": "0.0.1",
+  "version": "0.0.25",
   "main": "source/index.js",
   "types": "source/index.d.ts",
   "license": "MIT",
@@ -32,12 +32,6 @@
     "prepublishOnly": "tsc --build && npx babel source --out-dir lib --plugins=./scripts/prepublishOnly"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.0",
-    "@babel/generator": "^7.9.4",
-    "@babel/parser": "^7.9.4",
-    "@babel/traverse": "^7.9.5",
-    "@babel/types": "^7.9.5",
     "@types/babel__core": "^7.1.7",
     "@types/node": "^13.11.1",
     "babel-plugin-tester": "^9.0.1",
@@ -45,6 +39,13 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "cross-fetch": "^3.0.4"
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/generator": "^7.9.4",
+    "@babel/parser": "^7.9.4",
+    "@babel/traverse": "^7.9.5",
+    "@babel/types": "^7.9.5",
+    "ts2odata": "latest",
+    "ts2odata-babel": "latest"
   }
 }
