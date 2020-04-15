@@ -31,6 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="package.json" />
+    <Content Include="scripts\prepublishOnly.js" />
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
@@ -40,6 +41,7 @@
     <Folder Include="scripts\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="scripts\PrepublishOnlyPlugin.ts" />
     <TypeScriptCompile Include="source\helpers.ts" />
     <TypeScriptCompile Include="source\traverse.ts" />
     <TypeScriptCompile Include="source\visitors.ts" />
