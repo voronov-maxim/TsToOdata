@@ -91,7 +91,7 @@ context.Orders.expand(o => o.Items);
 ```
 Get related entities nested levels
 ```javascript
-context.Customers..expand(c => c.Orders).thenExpand(o => o.Items);
+context.Customers.expand(c => c.Orders).thenExpand(o => o.Items);
 //http://localhost:5000/api/Customers?$expand=Orders($expand=Items)
 ```
 Skip a subset of the entities
