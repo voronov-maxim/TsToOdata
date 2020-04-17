@@ -4,6 +4,7 @@ Typescript OData queries in a fluent way like linq.
 #### How to install ####  
 ```
 npm install ts2odata
+npm install --save-dev ts2odata-babel
 npm install --save-dev babel-plugin-ts2odata
 ```
 babel.config.js
