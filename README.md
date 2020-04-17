@@ -4,7 +4,23 @@ Typescript OData queries in a fluent way like linq.
 #### How to install ####  
 ```
 npm install ts2odata
+npm install --save-dev babel-plugin-ts2odata
 ```
+babel.config.js
+```json
+module.exports = {
+    plugins: [
+        [
+            'babel-plugin-ts2odata',
+            {
+                odataNamespace: 'OdataToEntity.Test.Model'
+            }
+        ]
+    ]
+};
+```
+For odatanamespace option see Enumeration types section.
+
 #### Create data model ####  
 Create Json schema from OData EDMX.  
 To do this, you can use the library [OdataToEntity](https://github.com/voronov-maxim/OdataToEntity/wiki/Json-schema).
