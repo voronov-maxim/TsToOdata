@@ -5,9 +5,8 @@
   "description": "TsToOdata babel plugin",
   "homepage": "https://github.com/voronov-maxim/TsToOdata#readme",
   "name": "babel-plugin-ts2odata",
-  "version": "0.0.25",
-  "main": "source/index.js",
-  "types": "source/index.d.ts",
+  "version": "0.0.31",
+  "main": "lib/index.js",
   "license": "MIT",
   "keywords": [
     "typescript",

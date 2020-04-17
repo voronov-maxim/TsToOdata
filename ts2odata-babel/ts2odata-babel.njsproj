@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="source\" />
+    <Folder Include="types\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="scripts\" />
@@ -43,8 +44,12 @@
   <ItemGroup>
     <TypeScriptCompile Include="scripts\PrepublishOnlyPlugin.ts" />
     <TypeScriptCompile Include="source\helpers.ts" />
+    <TypeScriptCompile Include="source\index.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="source\traverse.ts" />
     <TypeScriptCompile Include="source\visitors.ts" />
+    <TypeScriptCompile Include="types\index.d.ts" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>

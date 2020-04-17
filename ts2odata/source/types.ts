@@ -52,7 +52,7 @@ export interface IGrouping<TKey, TElement> {
 }
 
 export interface TraverseBase {
-    traverseFilter(entitySetContext: EntitySetContext, code: string, scope?: object): string;
-    traversePropertyPath(code: string): string;
-    traverseSelect(entitySetContext: EntitySetContext, code: string, scope?: object): Array<SelectExpression>;
+    traverseFilter(entitySetContext: EntitySetContext, code: Function, scope?: object): string;
+    traversePropertyPath(code: Function): string;
+    traverseSelect(entitySetContext: EntitySetContext, code: Function, scope?: object): Array<SelectExpression>;
 }

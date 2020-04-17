@@ -23,44 +23,45 @@ export class OdataParserTests {
         let entitySetContext = entitySet.entitySetContext as EntitySetContext;
         let traverse = new Traverse();
         let expression: string;
+        let n: any;
 
-        expression = traverse.traverseFilter(entitySetContext, 'i => i.Order.Customer.Sex == oe.Sex.Male');
+        expression = traverse.traverseFilter(entitySetContext, i => i.Order.Customer.Sex == oe.Sex.Male);
         if (expression !== expected)
             throw 'fixEnum failed';
 
-        expression = traverse.traverseFilter(entitySetContext, 'i => i.Order.Customer.Sex == n.Male');
+        expression = traverse.traverseFilter(entitySetContext, i => i.Order.Customer.Sex == n.Male);
         if (expression !== expected)
             throw 'fixEnum failed';
 
-        expression = traverse.traverseFilter(entitySetContext, "i => i.Order.Customer.Sex == 'Male'");
+        expression = traverse.traverseFilter(entitySetContext, i => i.Order.Customer.Sex == 'Male');
         if (expression !== expected)
             throw 'fixEnum failed';
 
         let param = oe.Sex.Male;
         let scope = { param };
-        expression = traverse.traverseFilter(entitySetContext, "i => i.Order.Customer.Sex == param", scope);
+        expression = traverse.traverseFilter(entitySetContext, i => i.Order.Customer.Sex == param, scope);
         if (expression !== expected)
             throw 'fixEnum failed';
 
-        expression = traverse.traverseFilter(entitySetContext, "i => i.Order.Customer.Sex == scope.param", scope);
+        expression = traverse.traverseFilter(entitySetContext, i => i.Order.Customer.Sex == scope.param, scope);
         if (expression !== expected)
             throw 'fixEnum failed';
 
-        expression = traverse.traverseFilter(entitySetContext, "i => i.Order.Customer.Sex == null");
+        expression = traverse.traverseFilter(entitySetContext, i => i.Order.Customer.Sex == null);
         if (expression !== 'Order/Customer/Sex eq null')
             throw 'fixEnum failed';
 
-        expression = traverse.traverseFilter(entitySetContext, "i => i.Order.Customer.Sex == param", { param: null });
+        expression = traverse.traverseFilter(entitySetContext, i => i.Order.Customer.Sex == param, { param: null });
         if (expression !== 'Order/Customer/Sex eq null')
             throw 'fixEnum failed';
 
-        expression = traverse.traverseFilter(entitySetContext, "i => i.Order.Customer.Sex == n.param", { param: null });
+        expression = traverse.traverseFilter(entitySetContext, i => i.Order.Customer.Sex == n.param, { param: null });
         if (expression !== 'Order/Customer/Sex eq null')
             throw 'fixEnum failed';
 
         entitySet = this.context.Orders;
         entitySetContext = entitySet.entitySetContext as EntitySetContext;
-        expression = traverse.traverseFilter(entitySetContext, 'o => o.Status === x.Processing');
+        expression = traverse.traverseFilter(entitySetContext, o => o.Status === n.Processing);
         if (expression !== "Status eq OdataToEntity.Test.Model.OrderStatus'Processing'")
             throw 'fixEnum failed';
     }

@@ -43,39 +43,42 @@ export class Traverse implements types.TraverseBase {
 		traverse(ast, state.visitor as TraverseOptions, {} as Scope, state);
 		return state.properties;
 	}
-	traverseFilter(entitySetContext: EntitySetContext, code: string, scope?: object): string {
-		let expression: string | undefined = getQueryCache(entitySetContext).getFilterExpression(code);
+	traverseFilter(entitySetContext: EntitySetContext, code: Function, scope?: object): string {
+		let funcText: string = code.toString();
+		let expression: string | undefined = getQueryCache(entitySetContext).getFilterExpression(funcText);
 		if (expression)
 			return scope === undefined ? expression : helpers.fillParameters(expression, scope, entitySetContext);
 
-		let ast: bt.Expression = parseExpression(code);
+		let ast: bt.Expression = parseExpression(funcText);
 		expression = this.traverseAstFilter(entitySetContext, ast, scope);
 
-		getQueryCache(entitySetContext).addFilterExpression(code, expression);
+		getQueryCache(entitySetContext).addFilterExpression(funcText, expression);
 		return scope === undefined ? expression : helpers.fillParameters(expression, scope, entitySetContext);
 	}
-	traversePropertyPath(code: string): string {
-		let propertyPath: string | undefined = getQueryCache().getPropertyPath(code);
+	traversePropertyPath(code: Function): string {
+		let funcText: string = code.toString();
+		let propertyPath: string | undefined = getQueryCache().getPropertyPath(funcText);
 		if (propertyPath)
 			return propertyPath;
 
-		let body: bt.Expression = bhelpers.getFunctionBody(parseExpression(code) as bt.ArrowFunctionExpression);
+		let body: bt.Expression = bhelpers.getFunctionBody(parseExpression(funcText) as bt.ArrowFunctionExpression);
 		propertyPath = this.traverseAstPropertyPath(body);
 		if (propertyPath) {
-			getQueryCache().addPropertyPath(code, propertyPath);
+			getQueryCache().addPropertyPath(funcText, propertyPath);
 			return propertyPath;
 		}
 
 		throw new Error('Invalid function body ' + code);
 	}
-	traverseSelect(entitySetContext: EntitySetContext, code: string, scope?: object): Array<types.SelectExpression> {
-		let properties: Array<types.SelectExpression> | undefined = getQueryCache(entitySetContext).getSelectExpression(code);
+	traverseSelect(entitySetContext: EntitySetContext, code: Function, scope?: object): Array<types.SelectExpression> {
+		let funcText: string = code.toString();
+		let properties: Array<types.SelectExpression> | undefined = getQueryCache(entitySetContext).getSelectExpression(funcText);
 		if (properties)
 			return scope === undefined ? properties : helpers.fillSelectParameters(properties, scope, entitySetContext);
 
-		let ast: bt.Expression = parseExpression(code);
+		let ast: bt.Expression = parseExpression(funcText);
 		properties = this.traverseAstSelect(entitySetContext, ast, scope);
-		getQueryCache(entitySetContext).addSelectExpression(code, properties);
+		getQueryCache(entitySetContext).addSelectExpression(funcText, properties);
 		return scope === undefined ? properties : helpers.fillSelectParameters(properties, scope, entitySetContext);;
 	}
 }

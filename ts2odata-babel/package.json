@@ -5,9 +5,9 @@
   "description": "TsToOdata babel traverse",
   "homepage": "https://github.com/voronov-maxim/TsToOdata#readme",
   "name": "ts2odata-babel",
-  "version": "0.0.25",
-  "main": "source/index.js",
-  "types": "source/index.d.ts",
+  "version": "0.0.31",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "license": "MIT",
   "keywords": [
     "typescript",
@@ -29,7 +29,8 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "prepublishOnly": "tsc --build && npx babel source --out-dir lib --plugins=./scripts/prepublishOnly"
+    "copy": "cp ./types/index.d.ts ./lib",
+    "prepublishOnly": "tsc --build && npx babel source --out-dir lib --plugins=./scripts/prepublishOnly && npm run copy"
   },
   "devDependencies": {
     "@types/babel__core": "^7.1.7",
