@@ -7,7 +7,7 @@ npm install ts2odata
 npm install --save-dev babel-plugin-ts2odata
 ```
 babel.config.js
-```json
+```javascript
 module.exports = {
     plugins: [
         [
