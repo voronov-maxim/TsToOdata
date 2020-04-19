@@ -353,3 +353,17 @@ import schema from './schema.json';
 let odataParser = new OdataParser(schema);
 let context: OrderContext = OdataContext.create(OrderContext, 'http://localhost:5000/api', 'OdataToEntity.Test.Model', odataParser);
 ```
+#### Babel plugin ####  
+TypeScript code:
+```javascript
+let price = 2.1;
+let orders = context.Orders.filter(o => o.Items.every(i => i.Price >= price), { price })
+    .select(i => { return { orderYear: i.Date.getFullYear() } }).toArrayAsync();
+```
+Translated into:
+```javascript
+let price = 2.1;
+let orders = context.Orders.filter("Items/all(d:d/Price ge {price})", {
+  price
+}).select("[{\"expression\":\"year(Date)\",\"alias\":\"orderYear\",\"kind\":1}]").toArrayAsync();
+```
