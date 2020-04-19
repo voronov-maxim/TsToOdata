@@ -4,7 +4,23 @@ Typescript OData queries in a fluent way like linq.
 #### How to install ####  
 ```
 npm install ts2odata
+npm install --save-dev babel-plugin-ts2odata
 ```
+babel.config.js
+```javascript
+module.exports = {
+    plugins: [
+        [
+            'babel-plugin-ts2odata',
+            {
+                odataNamespace: 'OdataToEntity.Test.Model'
+            }
+        ]
+    ]
+};
+```
+For odatanamespace option see Enumeration types section.
+
 #### Create data model ####  
 Create Json schema from OData EDMX.  
 To do this, you can use the library [OdataToEntity](https://github.com/voronov-maxim/OdataToEntity/wiki/Json-schema).
@@ -75,7 +91,7 @@ context.Orders.expand(o => o.Items);
 ```
 Get related entities nested levels
 ```javascript
-context.Customers..expand(c => c.Orders).thenExpand(o => o.Items);
+context.Customers.expand(c => c.Orders).thenExpand(o => o.Items);
 //http://localhost:5000/api/Customers?$expand=Orders($expand=Items)
 ```
 Skip a subset of the entities
